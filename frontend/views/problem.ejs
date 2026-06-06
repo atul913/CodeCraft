@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Problem — CodeCraft</title>
+    <link rel="stylesheet" href="/css/auth.css">
+    <link rel="stylesheet" href="/css/editor.css">
+</head>
+
+<body>
+
+    <div class="main" style="display:flex; flex:1; overflow:hidden; background:#fff;">
+
+        <!-- Left: Problem description -->
+        <div class="left-panel"
+            style="width:45%; border-right:1px solid #ccc; display:flex; flex-direction:column; overflow:hidden;">
+            <div class="panel-tabs"
+                style="display:flex; border-bottom:1px solid #ccc; background:#fafbfc; flex-shrink:0;">
+                <button class="panel-tab active" onclick="switchTab('description', this)"
+                    style="padding:10px 16px; font-size:13px; cursor:pointer; border:none; border-right:1px solid #ccc; background:none; font-weight:bold; color:#3b5998;">Description</button>
+                <button class="panel-tab" onclick="switchTab('submissions', this)"
+                    style="padding:10px 16px; font-size:13px; cursor:pointer; border:none; border-right:1px solid #ccc; background:none; font-weight:bold; color:#555;">Submissions</button>
+            </div>
+
+            <!-- Description tab -->
+            <div class="panel-content" id="tab-description" style="flex:1; overflow-y:auto; padding:20px;">
+                <div class="loading">Loading problem...</div>
+            </div>
+
+            <!-- Submissions tab -->
+            <div class="panel-content" id="tab-submissions"
+                style="display:none; flex:1; overflow-y:auto; padding:20px;">
+                <div class="loading">No submissions yet.</div>
+            </div>
+        </div>
+
+        <!-- Right: Editor -->
+        <div class="right-panel" style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
+
+            <div class="editor-toolbar"
+                style="background:#fafbfc; border-bottom:1px solid #ccc; padding:8px 15px; display:flex; align-items:center; gap:10px; flex-shrink:0;">
+                <label style="font-size:13px; font-weight:bold; color:#444;">Language:</label>
+                <select id="langSelect" onchange="onLangChange()"
+                    style="border:1px solid #aaa; border-radius:3px; padding:4px 8px; font-size:13px; outline:none;">
+                    <option value="">— select —</option>
+                </select>
+                <label style="margin-left:auto; font-size:13px; font-weight:bold; color:#444;">Theme:</label>
+                <select id="themeSelect" onchange="onThemeChange()"
+                    style="border:1px solid #aaa; border-radius:3px; padding:4px 8px; font-size:13px; outline:none;">
+                    <option value="vs">Light</option>
+                    <option value="vs-dark">Dark</option>
+                </select>
+            </div>
+
+            <div id="monaco-editor" style="flex:1; overflow:hidden;"></div>
+
+            <div class="result-panel" id="resultPanel"
+                style="background:#fafbfc; border-top:1px solid #ccc; padding:15px; font-size:13px; flex-shrink:0; display:none; max-height:200px; overflow-y:auto;">
+                <div class="result-title" id="resultTitle"
+                    style="font-weight:bold; margin-bottom:10px; font-size:14px;"></div>
+                <div id="resultBody"></div>
+            </div>
+
+            <div class="action-bar"
+                style="background:#fafbfc; border-top:1px solid #ccc; padding:10px 15px; display:flex; align-items:center; gap:10px; flex-shrink:0;">
+                <button class="btn-cancel" id="runBtn" onclick="runCode()">Run Code</button>
+                <button class="btn-submit" id="submitBtn" onclick="submitCode()">Submit</button>
+                <span class="action-spacer" style="flex:1;"></span>
+                <span class="action-info" id="actionInfo" style="font-size:12px; color:#666;"></span>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Monaco from CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
+
+    <script>
+        const API = 'http://127.0.0.1:5000/api'
+
+        let problem = null
+        let editor = null
+
+        // ── Get slug from URL ──
+        const slug = window.location.pathname.split('/').pop()
+
+        // ── Load problem ──
+        async function loadProblem() {
+            try {
+                const res = await fetch(`${API}/problems/${slug}`)
+                const data = await res.json()
+                if (!data.success) { document.getElementById('problemTitle').textContent = 'Problem not found'; return }
+
+                problem = data.data
+                renderProblem()
+                setupEditor()
+            } catch (e) {
+                document.getElementById('problemTitle').textContent = 'Could not load problem'
+            }
+        }
+
+        // ── Render problem info ──
+        function renderProblem() {
+            document.title = `${problem.title} — CodeCraft`
+
+            const desc = document.getElementById('tab-description')
+
+            desc.innerHTML = ` <span class="subbar-title" id="problemTitle"
+            style="font-weight:bold; font-size:15px; color:#111;">${problem.title}</span>
+        <span id="diffBadge" class="badge badge- ${problem.difficulty.toLowerCase()}">${problem.difficulty}</span>
+        <span id="categoryTags" style="color:#888;font-size:11px">${(problem.categories || [])}</span>
+
+      <div class="problem-section" style="margin-bottom:20px;">
+        <p style="line-height:1.6; margin-bottom:10px;">${escapeHtml(problem.description).replace(/\n/g, '<br>')}</p>
+      </div>
+
+      ${problem.constraints?.length ? `
+      <div class="problem-section" style="margin-bottom:20px;">
+        <h3 style="font-size:14px; font-weight:bold; margin-bottom:10px; border-bottom:1px solid #ccc; padding-bottom:5px; color:#3b5998;">Constraints</h3>
+        <ul style="padding-left:20px; line-height:1.6;">${problem.constraints.map(c => `<li>${escapeHtml(c)}</li>`).join('')}</ul>
+      </div>` : ''}
+
+      ${problem.visibleTestCases?.length ? `
+      <div class="problem-section" style="margin-bottom:20px;">
+        <h3 style="font-size:14px; font-weight:bold; margin-bottom:10px; border-bottom:1px solid #ccc; padding-bottom:5px; color:#3b5998;">Examples</h3>
+        ${problem.visibleTestCases.map((tc, i) => `
+          <div class="tc-block" style="background:#fafbfc; border:1px solid #ccc; border-radius:4px; padding:12px 15px; margin-bottom:12px; font-family:monospace; font-size:13px;">
+            <div class="tc-block-label" style="font-family:inherit; font-size:12px; font-weight:bold; color:#555; margin-bottom:8px;">Example ${i + 1}</div>
+            <div class="tc-row" style="margin-bottom:5px; line-height:1.4;"><span style="color:#666; font-weight:bold;">Input:  </span>${escapeHtml(tc.input)}</div>
+            <div class="tc-row" style="margin-bottom:5px; line-height:1.4;"><span style="color:#666; font-weight:bold;">Output: </span>${escapeHtml(tc.expectedOutput)}</div>
+            ${tc.explanation ? `<div class="tc-row" style="margin-bottom:5px; line-height:1.4;"><span style="color:#666; font-weight:bold;">Explanation: </span>${escapeHtml(tc.explanation)}</div>` : ''}
+          </div>
+        `).join('')}
+      </div>` : ''}
+
+      ${problem.timeLimit || problem.memoryLimit ? `
+      <div class="problem-section" style="margin-bottom:20px;">
+        <h3 style="font-size:14px; font-weight:bold; margin-bottom:10px; border-bottom:1px solid #ccc; padding-bottom:5px; color:#3b5998;">Limits</h3>
+        <p style="line-height:1.6;">Time Limit: ${problem.timeLimit}ms &nbsp;|&nbsp; Memory Limit: ${problem.memoryLimit}MB</p>
+      </div>` : ''}
+    `
+        }
+
+        // ── Setup Monaco ──
+        function setupEditor() {
+            // populate language dropdown
+            const select = document.getElementById('langSelect')
+            select.innerHTML = '<option value="">— select —</option>'
+                ; (problem.supportedLanguages || []).forEach(lang => {
+                    const opt = document.createElement('option')
+                    opt.value = lang
+                    opt.textContent = lang.charAt(0).toUpperCase() + lang.slice(1)
+                    select.appendChild(opt)
+                })
+
+            // load Monaco
+            require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' } })
+            require(['vs/editor/editor.main'], () => {
+                editor = monaco.editor.create(document.getElementById('monaco-editor'), {
+                    value: '// Select a language to load starter code',
+                    language: 'plaintext',
+                    theme: 'vs',
+                    fontSize: 13,
+                    minimap: { enabled: false },
+                    scrollBeyondLastLine: false,
+                    automaticLayout: true,
+                    tabSize: 2,
+                    wordWrap: 'on',
+                    lineNumbers: 'on',
+                    renderLineHighlight: 'line',
+                    fontFamily: "'Courier New', monospace"
+                })
+            })
+        }
+
+        // ── Language change ──
+        function onLangChange() {
+            if (!editor || !problem) return
+            const lang = document.getElementById('langSelect').value
+            if (!lang) return
+
+            // set starter code
+            const starterCode = problem.starterCode?.[lang] || `// Write your ${lang} solution here`
+            editor.setValue(starterCode)
+
+            // set Monaco language
+            const monacoLang = {
+                python: 'python', javascript: 'javascript',
+                cpp: 'cpp', java: 'java'
+            }[lang] || 'plaintext'
+
+            monaco.editor.setModelLanguage(editor.getModel(), monacoLang)
+        }
+
+        // ── Theme change ──
+        function onThemeChange() {
+            if (!editor) return
+            monaco.editor.setTheme(document.getElementById('themeSelect').value)
+        }
+
+        // ── Tab switch ──
+        function switchTab(tab, btn) {
+            document.querySelectorAll('.panel-tab').forEach(t => { t.style.color = '#555'; t.style.borderBottom = 'none'; })
+            btn.style.color = '#3b5998'
+            btn.style.borderBottom = '2px solid #3b5998'
+            document.getElementById('tab-description').style.display = tab === 'description' ? 'block' : 'none'
+            document.getElementById('tab-submissions').style.display = tab === 'submissions' ? 'block' : 'none'
+        }
+
+        // ── Run code ──
+        async function runCode() {
+            if (!validateBeforeSubmit()) return
+            setLoading(true, 'Running...')
+            showResult('running', 'Running against visible test cases...', [])
+
+            const payload = {
+                problemId: problem._id,
+                language: document.getElementById('langSelect').value,
+                code: editor.getValue(),
+                isRun: true
+            }
+
+            try {
+                const res = await fetch(`${API}/submissions/run`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                })
+                const data = await res.json()
+                handleResult(data, true)
+            } catch (e) {
+                showResult('error', 'Could not reach server', [])
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        // ── Submit code ──
+        async function submitCode() {
+            if (!validateBeforeSubmit()) return
+            setLoading(true, 'Submitting...')
+            showResult('running', 'Judging submission...', [])
+
+            const payload = {
+                problemId: problem._id,
+                language: document.getElementById('langSelect').value,
+                code: editor.getValue(),
+                isRun: false
+            }
+
+            try {
+                const res = await fetch(`${API}/submissions/submit`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                })
+                const data = await res.json()
+                handleResult(data, false)
+            } catch (e) {
+                showResult('error', 'Could not reach server', [])
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        // ── Handle result ──
+        function handleResult(data, isRun) {
+            if (!data.success) { showResult('error', data.message || 'Error', []); return }
+
+            const sub = data.data
+            const verdict = sub.verdict
+            const type = verdict === 'Accepted' ? 'accepted' : verdict.includes('Time') ? 'tle' : verdict.includes('Compile') || verdict.includes('Runtime') ? 'error' : 'wrong'
+
+            const summary = isRun
+                ? `${sub.passedTestCases}/${sub.totalTestCases} test cases passed`
+                : `${verdict} — ${sub.passedTestCases}/${sub.totalTestCases} test cases`
+
+            const details = (sub.executionDetails || []).map(d => ({
+                id: d.testCaseId, status: d.status
+            }))
+
+            const extra = sub.runtimeMs ? `Runtime: ${sub.runtimeMs}ms  |  Memory: ${sub.memoryUsageMb}MB` : ''
+            document.getElementById('actionInfo').textContent = extra
+
+            showResult(type, `${verdict} — ${summary}`, details, sub.errorMessage)
+        }
+
+        // ── Show result panel ──
+        function showResult(type, title, details, errorMsg) {
+            const panel = document.getElementById('resultPanel')
+            const titleEl = document.getElementById('resultTitle')
+            const bodyEl = document.getElementById('resultBody')
+
+            panel.style.display = 'block'
+
+            const colors = { accepted: '#28a745', wrong: '#dc3545', error: '#6c757d', tle: '#fd7e14', running: '#6c757d' }
+            titleEl.style.color = colors[type] || '#333'
+            titleEl.textContent = title
+
+            if (errorMsg) {
+                bodyEl.innerHTML = `<div class="result-tc" style="background:#fff; border:1px solid #ccc; padding:10px; margin-bottom:8px; font-family:monospace;"><pre style="font-size:11px;white-space:pre-wrap">${escapeHtml(errorMsg)}</pre></div>`
+                return
+            }
+
+            bodyEl.innerHTML = details.map(d => `
+      <div class="result-tc" style="background:#fff; border:1px solid #ccc; padding:10px; margin-bottom:8px; font-family:monospace;">
+        <div class="result-tc-header" style="color:${d.status === 'Passed' ? '#28a745' : '#dc3545'}; font-weight:bold;">
+          ${d.status === 'Passed' ? '✓' : '✕'} ${d.id} — ${d.status}
+        </div>
+      </div>
+    `).join('') || ''
+        }
+
+        // ── Validate ──
+        function validateBeforeSubmit() {
+            const lang = document.getElementById('langSelect').value
+            if (!lang) { alert('Please select a language'); return false }
+            if (!editor || !editor.getValue().trim()) { alert('Please write some code'); return false }
+            return true
+        }
+
+        // ── Loading state ──
+        function setLoading(on, msg) {
+            document.getElementById('runBtn').disabled = on
+            document.getElementById('submitBtn').disabled = on
+            if (msg) document.getElementById('actionInfo').textContent = msg
+        }
+
+        // ── Escape HTML ──
+        function escapeHtml(str) {
+            return String(str || '')
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+        }
+
+        // ── Init ──
+        loadProblem()
+    </script>
+</body>
+
+</html>

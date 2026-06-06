@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - CodeCraft</title>
+    <link rel="stylesheet" href="/css/auth.css">
+</head>
+
+<body>
+
+    <!-- Top Utilities Header -->
+    <%- include('partials/navbar') %>
+
+        <div class="container">
+
+            <div class="welcome-banner">
+                <h2>Fill in the form to register in CodeArena.</h2>
+                <p>
+                    Create your handle and start solving problems, tracking your progress, and competing in contests.
+                    Already registered? <a href="/login">Login with your credentials</a>.
+                </p>
+            </div>
+
+            <div class="grid-layout">
+
+                <!-- Register Card -->
+                <section class="card">
+                    <div class="card-header">Register in CodeArena</div>
+                    <div class="card-body">
+
+                        <div id="alertsContainer"></div>
+
+                        <form id="registerForm" onsubmit="return handleRegisterSubmit(event)">
+
+                            <div class="form-group">
+                                <label class="form-label" for="reg-handle">Handle <span
+                                        style="color:#c00">*</span></label>
+                                <div>
+                                    <input type="text" id="reg-handle" class="input-field"
+                                        placeholder="e.g. coder123" />
+                                    <div class="input-subtext">Your username. Only letters, numbers, and underscores.
+                                        3–20 characters.</div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="reg-email">Email <span
+                                        style="color:#c00">*</span></label>
+                                <div>
+                                    <input type="text" id="reg-email" class="input-field"
+                                        placeholder="e.g. you@example.com" />
+                                    <div class="input-subtext">A confirmation link will be sent to this address.</div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="reg-password">Password <span
+                                        style="color:#c00">*</span></label>
+                                <div>
+                                    <input type="password" id="reg-password" class="input-field"
+                                        placeholder="•••••••••" />
+                                    <div class="input-subtext">At least 5 characters.</div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="reg-confirm">Confirm Password <span
+                                        style="color:#c00">*</span></label>
+                                <div>
+                                    <input type="password" id="reg-confirm" class="input-field"
+                                        placeholder="•••••••••" />
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div></div>
+                                <div class="form-action">
+                                    <button type="submit" class="btn-submit" id="registerBtn">Register</button>
+                                    <a href="/login" class="cancel-link">Cancel and Login</a>
+                                </div>
+                            </div>
+
+                        </form>
+                    </div>
+
+                    <div class="social-auth-bar">
+                        <span class="social-label">Or register instantly with:</span>
+                        <div class="social-buttons">
+                            <button class="btn-social btn-github">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                                    <path
+                                        d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                                </svg>
+                                <span>GitHub</span>
+                            </button>
+                            <button class="btn-social btn-email">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path
+                                        d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                                    <path d="M22 6l-10 7L2 6" />
+                                </svg>
+                                <span>Email</span>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Sidebar -->
+                <aside class="sidebar">
+                    <h3>Confirmations & Emails</h3>
+                    <p>If you have registered but did not receive a verification email, do not create a duplicate
+                        account.</p>
+                    <p>Click <a href="#" onclick="alert('Demo: re-send link')">re-send verification link</a> or check
+                        your spam folder.</p>
+                    <div class="alert-box">
+                        <strong>Security Alert:</strong> Avoid obvious passwords. Never share your password or recovery
+                        details with anyone.
+                    </div>
+                </aside>
+
+            </div>
+        </div>
+
+
+        <!-- Traditional Static Footer -->
+        <footer>
+            <div class="container">
+                <p><a href="#">CodeCraft</a> &copy; Copyright 2010-2026 Mike Mirzayanov / CodeCraft Team</p>
+                <p style="color:#aaa; margin-top:5px;">The only programming contests Web 2.0 platform</p>
+
+                <p style="color: #3b5998; margin-top: 5px;">
+                    <a href="#">Privacy Policy</a> | <a href="#">Terms and Conditions</a>
+                </p>
+
+                <div class="footer-sponsor-logo">C</div>
+            </div>
+        </footer>
+
+        <script>
+            const API = 'http://127.0.0.1:5000/api'
+
+            // ── Clock ──
+            function updateClock() {
+                const now = new Date()
+                const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+                const dd = String(now.getUTCDate()).padStart(2, '0')
+                const mm = months[now.getUTCMonth()]
+                const yy = now.getUTCFullYear()
+                const hh = String(now.getUTCHours()).padStart(2, '0')
+                const min = String(now.getUTCMinutes()).padStart(2, '0')
+                const ss = String(now.getUTCSeconds()).padStart(2, '0')
+                document.getElementById('serverTimeText').textContent = `${mm}/${dd}/${yy} ${hh}:${min}:${ss} UTC`
+            }
+            updateClock()
+            setInterval(updateClock, 1000)
+
+            // ── Alerts ──
+            function showAlert(type, messages) {
+                const el = document.getElementById('alertsContainer')
+                if (type === 'success') {
+                    el.innerHTML = `<div class="alert-success">${messages}</div>`
+                } else {
+                    const items = Array.isArray(messages) ? messages.map(m => `<li>${m}</li>`).join('') : `<li>${messages}</li>`
+                    el.innerHTML = `<div class="alert-danger"><strong>Validation Failures:</strong><ul>${items}</ul></div>`
+                }
+            }
+
+            // ── Register ──
+            async function handleRegisterSubmit(event) {
+                event.preventDefault()
+
+                const username = document.getElementById('reg-handle').value.trim()
+                const email = document.getElementById('reg-email').value.trim()
+                const password = document.getElementById('reg-password').value
+                const confirm = document.getElementById('reg-confirm').value
+
+                document.getElementById('alertsContainer').innerHTML = ''
+                const errors = []
+
+                if (!username) errors.push('Handle is required.')
+                else if (username.length < 3 || username.length > 20) errors.push('Handle must be 3–20 characters.')
+                else if (!/^[A-Za-z0-9_]+$/.test(username)) errors.push('Handle can only contain letters, numbers, and underscores.')
+
+                if (!email) errors.push('Email is required.')
+                else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.push('Please enter a valid email.')
+
+                if (!password) errors.push('Password is required.')
+                else if (password.length < 5) errors.push('Password must be at least 5 characters.')
+
+                if (password !== confirm) errors.push('Passwords do not match.')
+
+                if (errors.length) { showAlert('error', errors); return false }
+
+                const btn = document.getElementById('registerBtn')
+                btn.disabled = true
+                btn.textContent = 'Registering...'
+
+                try {
+                    const res = await fetch(`${API}/auth/register`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, email, password })
+                    })
+                    const data = await res.json()
+
+                    if (data.success) {
+                        showAlert('success', `Registration successful! Handle <strong>${username}</strong> is now registered. <a href="/login">Login here</a>.`)
+                        document.getElementById('registerForm').reset()
+                    } else {
+                        showAlert('error', data.message || 'Registration failed')
+                    }
+                } catch (e) {
+                    showAlert('error', 'Could not reach the server.')
+                } finally {
+                    btn.disabled = false
+                    btn.textContent = 'Register'
+                }
+
+                return false
+            }
+
+            // ── If already logged in redirect ──
+            if (localStorage.getItem('token')) window.location.href = '/'
+        </script>
+</body>
+
+</html>

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Problems — CodeCraft</title>
+    <link rel="stylesheet" href="/css/auth.css">
+</head>
+
+<body>
+
+    <!-- Top Utilities Header -->
+    <%- include('partials/navbar') %>
+
+
+        <main class="container">
+
+            <!-- Stats -->
+            <div class="stats-bar">
+                <div class="stat-box">
+                    <div class="num" id="totalCount">—</div>
+                    <div class="lbl">Total Problems</div>
+                </div>
+                <div class="stat-box stat-easy">
+                    <div class="num" id="easyCount">—</div>
+                    <div class="lbl">Easy</div>
+                </div>
+                <div class="stat-box stat-medium">
+                    <div class="num" id="mediumCount">—</div>
+                    <div class="lbl">Medium</div>
+                </div>
+                <div class="stat-box stat-hard">
+                    <div class="num" id="hardCount">—</div>
+                    <div class="lbl">Hard</div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="filters">
+                <label>Difficulty:</label>
+                <select id="diffFilter">
+                    <option value="">All</option>
+                    <option value="Easy">Easy</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Hard">Hard</option>
+                </select>
+
+                <label>Category:</label>
+                <select id="catFilter">
+                    <option value="">All</option>
+                </select>
+
+                <button class="btn-submit" onclick="applyFilters()">Filter</button>
+                <button class="btn-cancel" onclick="resetFilters()">Reset</button>
+            </div>
+
+            <!-- Table -->
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width:40px">#</th>
+                            <th onclick="sortBy('title')">Title</th>
+                            <th onclick="sortBy('difficulty')" style="width:90px">Difficulty</th>
+                            <th>Categories</th>
+                            <th style="width:110px">Acceptance</th>
+                        </tr>
+                    </thead>
+                    <tbody id="problemsBody">
+                        <tr class="empty-row">
+                            <td colspan="5">Loading problems...</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- Pagination -->
+                <div class="pagination">
+                    <span id="pageInfo">—</span>
+                    <div class="page-btns" id="pageBtns"></div>
+                </div>
+            </div>
+
+        </main>
+
+        <footer>
+            <div class="container">
+                <p><a href="#">CodeCraft</a> &copy; Copyright 2010-2026 Mike Mirzayanov / CodeCraft Team</p>
+                <p style="color:#aaa; margin-top:5px;">The only programming contests Web 2.0 platform</p>
+                <div class="footer-server-time">
+                    Server time: <span id="serverTimeText" style="font-weight: bold; color: #222;"></span> (l2)
+                </div>
+                <p style="color: #3b5998; margin-top: 5px;">
+                    <a href="#">Privacy Policy</a> | <a href="#">Terms and Conditions</a>
+                </p>
+                <div class="footer-sponsor-logo">C</div>
+            </div>
+        </footer>
+
+        <script>
+            const API = 'http://127.0.0.1:5000/api'
+
+            let allProblems = []
+            let filtered = []
+            let sortCol = ''
+            let sortDir = 1   // 1 = asc, -1 = desc
+            let currentPage = 1
+            const PER_PAGE = 25
+
+            // Server time updater
+            function updateClock() {
+                const now = new Date();
+                const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                const serverTimeStr = months[now.getUTCMonth()] + "/" + String(now.getUTCDate()).padStart(2, '0') + "/" + now.getUTCFullYear() + " " + String(now.getUTCHours()).padStart(2, '0') + ":" + String(now.getUTCMinutes()).padStart(2, '0') + ":" + String(now.getUTCSeconds()).padStart(2, '0') + " UTC";
+                const el = document.getElementById('serverTimeText');
+                if (el) el.innerText = serverTimeStr;
+            }
+            updateClock(); setInterval(updateClock, 1000);
+
+            // ── Load ──
+            async function load() {
+                try {
+                    const res = await fetch(`${API}/problems`)
+                    const data = await res.json()
+                    if (!data.success) return
+
+                    allProblems = data.data
+                    filtered = [...allProblems]
+
+                    updateStats()
+                    populateCategoryFilter()
+                    renderTable()
+                } catch (e) {
+                    document.getElementById('problemsBody').innerHTML =
+                        `<tr class="empty-row"><td colspan="5">Could not reach server</td></tr>`
+                }
+            }
+
+            // ── Stats ──
+            function updateStats() {
+                document.getElementById('totalCount').textContent = allProblems.length
+                document.getElementById('easyCount').textContent = allProblems.filter(p => p.difficulty === 'Easy').length
+                document.getElementById('mediumCount').textContent = allProblems.filter(p => p.difficulty === 'Medium').length
+                document.getElementById('hardCount').textContent = allProblems.filter(p => p.difficulty === 'Hard').length
+            }
+
+            // ── Category filter options ──
+            function populateCategoryFilter() {
+                const cats = new Set()
+                allProblems.forEach(p => (p.categories || []).forEach(c => cats.add(c)))
+                const sel = document.getElementById('catFilter')
+                cats.forEach(c => {
+                    const opt = document.createElement('option')
+                    opt.value = c; opt.textContent = c
+                    sel.appendChild(opt)
+                })
+            }
+
+            // ── Filter ──
+            function applyFilters() {
+                const search = document.getElementById('searchInput').value.trim().toLowerCase()
+                const diff = document.getElementById('diffFilter').value
+                const cat = document.getElementById('catFilter').value
+
+                filtered = allProblems.filter(p => {
+                    if (search && !p.title.toLowerCase().includes(search)) return false
+                    if (diff && p.difficulty !== diff) return false
+                    if (cat && !(p.categories || []).includes(cat)) return false
+                    return true
+                })
+
+                currentPage = 1
+                renderTable()
+            }
+
+            function resetFilters() {
+                document.getElementById('searchInput').value = ''
+                document.getElementById('diffFilter').value = ''
+                document.getElementById('catFilter').value = ''
+                filtered = [...allProblems]
+                currentPage = 1
+                renderTable()
+            }
+
+            // ── Sort ──
+            function sortBy(col) {
+                if (sortCol === col) sortDir *= -1
+                else { sortCol = col; sortDir = 1 }
+
+                document.querySelectorAll('th').forEach(t => t.classList.remove('sort-asc', 'sort-desc'))
+
+                document.querySelectorAll('th').forEach(t => {
+                    if (t.textContent.trim().toLowerCase().startsWith(col)) {
+                        t.classList.add(sortDir === 1 ? 'sort-asc' : 'sort-desc')
+                    }
+                })
+
+                filtered.sort((a, b) => {
+                    if (a[col] < b[col]) return -1 * sortDir
+                    if (a[col] > b[col]) return 1 * sortDir
+                    return 0
+                })
+
+                currentPage = 1
+                renderTable()
+            }
+
+            // ── Render table ──
+            function renderTable() {
+                const tbody = document.getElementById('problemsBody')
+                const start = (currentPage - 1) * PER_PAGE
+                const slice = filtered.slice(start, start + PER_PAGE)
+
+                if (filtered.length === 0) {
+                    tbody.innerHTML = `<tr class="empty-row"><td colspan="5">No problems found</td></tr>`
+                    document.getElementById('pageInfo').textContent = '0 problems'
+                    document.getElementById('pageBtns').innerHTML = ''
+                    return
+                }
+
+                tbody.innerHTML = slice.map((p, i) => {
+                    const cats = (p.categories || []).map(c => `<span class="tag">${c}</span>`).join('')
+                    const rate = p.acceptanceRate ?? null
+                    const rateHtml = rate !== null
+                        ? `<div class="rate-wrap">
+             <div class="rate-bar"><div class="rate-fill" style="width:${rate}%"></div></div>
+             <span class="rate-text">${rate}%</span>
+           </div>`
+                        : `<span style="color:#bbb">—</span>`
+
+                    return `<tr class="problem-row" onclick="window.location='/problems/${p.slug}'" style="cursor:pointer">
+        <td style="color:#999">${start + i + 1}</td>
+        <td><a href="/problems/${p.slug}" style="color:#3b5998; font-weight:bold; text-decoration:none;" onclick="event.stopPropagation()">${p.title}</a></td>
+        <td><span class="badge badge-${p.difficulty.toLowerCase()}">${p.difficulty}</span></td>
+        <td>${cats || '<span style="color:#bbb">—</span>'}</td>
+        <td>${rateHtml}</td>
+      </tr>`
+                }).join('')
+
+                document.getElementById('pageInfo').textContent =
+                    `Showing ${start + 1}–${Math.min(start + PER_PAGE, filtered.length)} of ${filtered.length} problems`
+
+                renderPagination()
+            }
+
+            // ── Pagination ──
+            function renderPagination() {
+                const total = Math.ceil(filtered.length / PER_PAGE)
+                const btns = document.getElementById('pageBtns')
+                if (total <= 1) { btns.innerHTML = ''; return }
+
+                let html = `<button class="page-btn" onclick="goPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>‹ Prev</button>`
+
+                for (let i = 1; i <= total; i++) {
+                    if (total > 7 && i > 2 && i < total - 1 && Math.abs(i - currentPage) > 1) {
+                        if (i === 3 || i === total - 2) html += `<button class="page-btn" disabled>…</button>`
+                        continue
+                    }
+                    html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="goPage(${i})">${i}</button>`
+                }
+
+                html += `<button class="page-btn" onclick="goPage(${currentPage + 1})" ${currentPage === total ? 'disabled' : ''}>Next ›</button>`
+                btns.innerHTML = html
+            }
+
+            function goPage(n) {
+                const total = Math.ceil(filtered.length / PER_PAGE)
+                if (n < 1 || n > total) return
+                currentPage = n
+                renderTable()
+                window.scrollTo(0, 0)
+            }
+
+            // ── Init ──
+            load()
+        </script>
+</body>
+
+</html>

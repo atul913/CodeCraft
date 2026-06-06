@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Add Problem — Admin — CodeCraft</title>
+    <link rel="stylesheet" href="/css/auth.css">
+    <link rel="stylesheet" href="/css/admin.css">
+</head>
+
+<body>
+
+    <div class="topbar">
+        <span class="topbar-brand">CodeCraft</span>
+        <span class="topbar-title" style="color:#666; font-weight:bold; text-transform:uppercase; font-size:11px;">admin
+            / problems / new</span>
+        <div>
+            <a href="/">Problems</a>
+            <a href="/admin/problems">Admin</a>
+        </div>
+    </div>
+
+    <div class="container" style="max-width: 900px; padding: 30px 15px 80px;">
+
+        <div class="welcome-banner" style="margin-bottom:25px;">
+            <h2 style="font-size:20px; border:none; padding:0; margin:0 0 5px 0;">Add New Problem</h2>
+            <p style="font-size:12px; color:#666; font-family:monospace; margin:0;">// fill in all required fields and
+                hit publish</p>
+        </div>
+
+        <!-- BASIC INFO -->
+        <div class="card" style="margin-bottom:20px;">
+            <div class="card-header">Basic Info</div>
+            <div class="card-body">
+                <div class="form-group" style="grid-template-columns:1fr; gap:6px;">
+                    <label class="form-label" style="text-align:left;">Title <span
+                            style="color:#dc3545">*</span></label>
+                    <input type="text" id="title" class="input-field" style="max-width:100%;"
+                        placeholder="e.g. Two Sum" />
+                </div>
+
+                <div class="form-group" style="grid-template-columns:1fr; gap:6px;">
+                    <label class="form-label" style="text-align:left;">Difficulty <span
+                            style="color:#dc3545">*</span></label>
+                    <input type="hidden" id="difficultyInput" />
+                    <div class="diff-group" style="display:flex; gap:10px;">
+                        <div class="diff-pill" data-val="Easy" onclick="selectDiff(this)">Easy</div>
+                        <div class="diff-pill" data-val="Medium" onclick="selectDiff(this)">Medium</div>
+                        <div class="diff-pill" data-val="Hard" onclick="selectDiff(this)">Hard</div>
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+                    <div class="form-group" style="grid-template-columns:1fr; gap:6px; margin-bottom:0;">
+                        <label class="form-label" style="text-align:left;">Categories</label>
+                        <div class="tag-input-wrap" id="catWrap" onclick="document.getElementById('catInput').focus()">
+                            <input class="tag-input" id="catInput" placeholder="Type and press Enter" />
+                        </div>
+                        <div class="input-subtext">e.g. Array, HashMap, Tree</div>
+                    </div>
+                    <div class="form-group" style="grid-template-columns:1fr; gap:6px; margin-bottom:0;">
+                        <label class="form-label" style="text-align:left;">Tags</label>
+                        <div class="tag-input-wrap" id="tagWrap" onclick="document.getElementById('tagInput').focus()">
+                            <input class="tag-input" id="tagInput" placeholder="Type and press Enter" />
+                        </div>
+                        <div class="input-subtext">e.g. Two Pointers, Sliding Window</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DESCRIPTION -->
+        <div class="card" style="margin-bottom:20px;">
+            <div class="card-header">Description</div>
+            <div class="card-body">
+                <div class="form-group" style="grid-template-columns:1fr; gap:6px;">
+                    <label class="form-label" style="text-align:left;">Problem Statement <span
+                            style="color:#dc3545">*</span></label>
+                    <textarea id="description" class="input-field"
+                        style="max-width:100%; min-height:150px; padding:10px;"
+                        placeholder="Describe the problem. Markdown is supported."></textarea>
+                </div>
+                <div class="form-group" style="grid-template-columns:1fr; gap:6px; margin-bottom:0;">
+                    <label class="form-label" style="text-align:left;">Constraints</label>
+                    <textarea id="constraints" class="input-field"
+                        style="max-width:100%; min-height:80px; padding:10px;"
+                        placeholder="One constraint per line&#10;e.g. 1 <= nums.length <= 10^4"></textarea>
+                    <div class="input-subtext">Each line will be saved as a separate constraint</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VISIBLE TEST CASES -->
+        <div class="card" style="margin-bottom:20px;">
+            <div class="card-header">Visible Test Cases</div>
+            <div class="card-body">
+                <div class="tc-list" id="visibleTCList"></div>
+                <button class="btn-cancel" style="width:100%; margin-top:15px; border-style:dashed;"
+                    onclick="addTC('visible')">+ Add Visible Test Case</button>
+                <div class="input-subtext" style="margin-top:8px;">Shown to users on the problem page when they click
+                    Run Code</div>
+            </div>
+        </div>
+
+        <!-- HIDDEN TEST CASES -->
+        <div class="card" style="margin-bottom:20px;">
+            <div class="card-header">Hidden Test Cases</div>
+            <div class="card-body">
+                <div class="tc-list" id="hiddenTCList"></div>
+                <button class="btn-cancel" style="width:100%; margin-top:15px; border-style:dashed;"
+                    onclick="addTC('hidden')">+ Add Hidden Test Case</button>
+                <div class="input-subtext" style="margin-top:8px;">Never shown to users — used for final submission
+                    judging</div>
+            </div>
+        </div>
+
+        <!-- LANGUAGES & STARTER CODE -->
+        <div class="card" style="margin-bottom:20px;">
+            <div class="card-header">Supported Languages & Starter Code</div>
+            <div class="card-body">
+                <div class="form-group" style="grid-template-columns:1fr; gap:6px;">
+                    <label class="form-label" style="text-align:left;">Supported Languages <span
+                            style="color:#dc3545">*</span></label>
+                    <div class="lang-grid" id="langGrid">
+                        <label class="lang-check" onclick="toggleLang(this, 'python')">
+                            <input type="checkbox" value="python" />
+                            <span class="lang-dot"></span> Python
+                        </label>
+                        <label class="lang-check" onclick="toggleLang(this, 'javascript')">
+                            <input type="checkbox" value="javascript" />
+                            <span class="lang-dot"></span> JavaScript
+                        </label>
+                        <label class="lang-check" onclick="toggleLang(this, 'cpp')">
+                            <input type="checkbox" value="cpp" />
+                            <span class="lang-dot"></span> C++
+                        </label>
+                        <label class="lang-check" onclick="toggleLang(this, 'java')">
+                            <input type="checkbox" value="java" />
+                            <span class="lang-dot"></span> Java
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group" id="starterCodeSection"
+                    style="display:none; grid-template-columns:1fr; gap:6px; margin-bottom:0;">
+                    <label class="form-label" style="text-align:left;">Starter Code</label>
+                    <div class="code-tabs" id="starterTabs"></div>
+                    <div id="starterPanels"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- LIMITS & EDITORIAL -->
+        <div class="card" style="margin-bottom:20px;">
+            <div class="card-header">Limits & Editorial</div>
+            <div class="card-body">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:15px;">
+                    <div class="form-group" style="grid-template-columns:1fr; gap:6px; margin-bottom:0;">
+                        <label class="form-label" style="text-align:left;">Time Limit (ms)</label>
+                        <input type="number" id="timeLimit" class="input-field" style="max-width:100%;" value="2000"
+                            min="500" max="10000" />
+                    </div>
+                    <div class="form-group" style="grid-template-columns:1fr; gap:6px; margin-bottom:0;">
+                        <label class="form-label" style="text-align:left;">Memory Limit (MB)</label>
+                        <input type="number" id="memoryLimit" class="input-field" style="max-width:100%;" value="256"
+                            min="32" max="1024" />
+                    </div>
+                </div>
+
+                <div class="form-group" style="grid-template-columns:1fr; gap:6px;">
+                    <label class="form-label" style="text-align:left;">Editorial (optional)</label>
+                    <textarea id="editorialContent" class="input-field"
+                        style="max-width:100%; min-height:80px; padding:10px;"
+                        placeholder="Explain the approach and solution..."></textarea>
+                </div>
+                <div class="form-group" style="grid-template-columns:1fr; gap:6px; margin-bottom:0;">
+                    <label class="form-label" style="text-align:left;">Editorial Video URL (optional)</label>
+                    <input type="url" id="editorialVideo" class="input-field" style="max-width:100%;"
+                        placeholder="https://youtube.com/..." />
+                </div>
+            </div>
+        </div>
+
+        <!-- SUBMIT BAR -->
+        <div class="submit-bar" style="display:flex; justify-content:flex-end; gap:15px; margin-top:30px;">
+            <button class="btn-cancel" onclick="resetForm()">Reset</button>
+            <button class="btn-submit" id="submitBtn" onclick="submitForm()">Publish Problem</button>
+        </div>
+
+    </div>
+
+    <!-- Toast -->
+    <div id="toast"
+        style="position:fixed; bottom:20px; right:20px; background:#fff; border:1px solid #ccc; border-left:4px solid #28a745; padding:12px 20px; border-radius:4px; box-shadow:0 4px 12px rgba(0,0,0,0.1); display:none; z-index:1000; font-size:13px;">
+    </div>
+
+    <script>
+        // ── API base URL ──
+        const API = 'http://127.0.0.1:5000/api'
+
+        // ── Difficulty ──
+        function selectDiff(el) {
+            document.querySelectorAll('.diff-pill').forEach(p => p.classList.remove('selected'))
+            el.classList.add('selected')
+            document.getElementById('difficultyInput').value = el.dataset.val
+        }
+
+        // ── Tag input (categories & tags) ──
+        function makeTagInput(inputId, wrapId) {
+            const tags = []
+            const input = document.getElementById(inputId)
+            const wrap = document.getElementById(wrapId)
+
+            input.addEventListener('keydown', e => {
+                if ((e.key === 'Enter' || e.key === ',') && input.value.trim()) {
+                    e.preventDefault()
+                    const val = input.value.trim().replace(/,$/, '')
+                    if (val && !tags.includes(val)) {
+                        tags.push(val)
+                        const tag = document.createElement('span')
+                        tag.className = 'tag'
+                        tag.innerHTML = `${val}<button onclick="removeTag(this, '${inputId}')">×</button>`
+                        wrap.insertBefore(tag, input)
+                    }
+                    input.value = ''
+                }
+                // backspace removes last tag
+                if (e.key === 'Backspace' && !input.value && tags.length) {
+                    tags.pop()
+                    wrap.querySelectorAll('.tag').forEach((t, i, arr) => { if (i === arr.length - 1) t.remove() })
+                }
+            })
+
+            return { getTags: () => [...tags], clear: () => { tags.length = 0; wrap.querySelectorAll('.tag').forEach(t => t.remove()) } }
+        }
+
+        const catCtrl = makeTagInput('catInput', 'catWrap')
+        const tagCtrl = makeTagInput('tagInput', 'tagWrap')
+
+        function removeTag(btn, inputId) {
+            // just remove visually — array sync happens on submit via re-read
+            btn.parentElement.remove()
+        }
+
+        // ── Languages & starter code ──
+        const selectedLangs = new Set()
+
+        function toggleLang(label, lang) {
+            setTimeout(() => {  // wait for checkbox state
+                const checked = label.querySelector('input').checked
+                if (checked) { selectedLangs.add(lang); label.classList.add('checked') }
+                else { selectedLangs.delete(lang); label.classList.remove('checked') }
+                renderStarterCode()
+            }, 0)
+        }
+
+        function renderStarterCode() {
+            const section = document.getElementById('starterCodeSection')
+            const tabs = document.getElementById('starterTabs')
+            const panels = document.getElementById('starterPanels')
+
+            if (selectedLangs.size === 0) { section.style.display = 'none'; return }
+            section.style.display = 'grid'
+
+            const langs = [...selectedLangs]
+            tabs.innerHTML = ''
+            panels.innerHTML = ''
+
+            langs.forEach((lang, i) => {
+                const tab = document.createElement('div')
+                tab.className = 'code-tab' + (i === 0 ? ' active' : '')
+                tab.textContent = lang
+                tab.onclick = () => {
+                    document.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'))
+                    document.querySelectorAll('.code-panel').forEach(p => p.classList.remove('active'))
+                    tab.classList.add('active')
+                    document.getElementById('panel-' + lang).classList.add('active')
+                }
+                tabs.appendChild(tab)
+
+                const panel = document.createElement('div')
+                panel.className = 'code-panel' + (i === 0 ? ' active' : '')
+                panel.id = 'panel-' + lang
+                panel.innerHTML = `<textarea id="starter-${lang}" class="input-field" style="max-width:100%; min-height:100px; padding:10px; font-family:monospace;" placeholder="Starter code for ${lang}..."></textarea>`
+                panels.appendChild(panel)
+            })
+        }
+
+        // ── Test cases ──
+        let visibleCount = 0
+        let hiddenCount = 0
+
+        function addTC(type) {
+            const list = document.getElementById(type + 'TCList')
+            const count = type === 'visible' ? ++visibleCount : ++hiddenCount
+            const id = `${type}-tc-${count}`
+
+            const item = document.createElement('div')
+            item.className = 'tc-item'
+            item.id = id
+            item.innerHTML = `
+      <div class="tc-item-header">
+        <span class="tc-label">${type === 'visible' ? 'Visible' : 'Hidden'} #${count}</span>
+        <button class="tc-remove" onclick="removeTC('${id}')">×</button>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:10px;">
+        <div class="form-group" style="grid-template-columns:1fr; gap:6px; margin-bottom:0;">
+          <label class="form-label" style="text-align:left;">Input</label>
+          <textarea class="input-field tc-input" style="max-width:100%; min-height:60px; padding:8px; font-family:monospace;" placeholder="e.g. nums = [2,7,11,15], target = 9"></textarea>
+        </div>
+        <div class="form-group" style="grid-template-columns:1fr; gap:6px; margin-bottom:0;">
+          <label class="form-label" style="text-align:left;">Expected Output</label>
+          <textarea class="input-field tc-output" style="max-width:100%; min-height:60px; padding:8px; font-family:monospace;" placeholder="e.g. [0,1]"></textarea>
+        </div>
+      </div>
+      ${type === 'visible' ? `
+      <div class="form-group" style="grid-template-columns:1fr; gap:6px; margin-bottom:0;">
+        <label class="form-label" style="text-align:left;">Explanation (optional)</label>
+        <input type="text" class="input-field tc-explanation" style="max-width:100%;" placeholder="e.g. Because nums[0] + nums[1] == 9" />
+      </div>` : ''}
+    `
+            list.appendChild(item)
+        }
+
+        function removeTC(id) {
+            document.getElementById(id)?.remove()
+        }
+
+        function collectTCs(type) {
+            const list = document.getElementById(type + 'TCList')
+            const items = list.querySelectorAll('.tc-item')
+            const result = []
+
+            items.forEach(it => {
+                const input = it.querySelector('.tc-input').value.trim()
+                const output = it.querySelector('.tc-output').value.trim()
+                const exp = it.querySelector('.tc-explanation')?.value.trim()
+                if (input && output) {
+                    const tc = { input, expectedOutput: output }
+                    if (exp) tc.explanation = exp
+                    result.push(tc)
+                }
+            })
+            return result
+        }
+
+        // ── Validation ──
+        function validate() {
+            const errors = []
+
+            const title = document.getElementById('title').value.trim()
+            if (!title) errors.push('Title is required')
+
+            const diff = document.getElementById('difficultyInput').value
+            if (!diff) errors.push('Please select a Difficulty')
+
+            const desc = document.getElementById('description').value.trim()
+            if (!desc) errors.push('Problem Statement is required')
+
+            const langs = [...selectedLangs]
+            if (langs.length === 0) errors.push('Select at least one supported language')
+
+            const visible = collectTCs('visible')
+            const hidden = collectTCs('hidden')
+            if (hidden.length === 0) errors.push('At least one Hidden Test Case is required for judging')
+
+            return { errors, data: { title, difficulty: diff, description: desc, visible, hidden, langs } }
+        }
+
+        // ── Submit ──
+        async function submitForm() {
+            const { errors, data } = validate()
+            if (errors.length > 0) {
+                showToast(errors[0], 'error')
+                return
+            }
+
+            const payload = {
+                title: data.title,
+                difficulty: data.difficulty,
+                categories: catCtrl.getTags(),
+                tags: tagCtrl.getTags(),
+                description: data.description,
+                constraints: document.getElementById('constraints').value.trim().split('\n').map(s => s.trim()).filter(Boolean),
+                visibleTestCases: data.visible,
+                hiddenTestCases: data.hidden,
+                supportedLanguages: data.langs,
+                starterCode: {},
+                timeLimit: parseInt(document.getElementById('timeLimit').value) || 2000,
+                memoryLimit: parseInt(document.getElementById('memoryLimit').value) || 256,
+                editorial: {
+                    content: document.getElementById('editorialContent').value.trim(),
+                    videoUrl: document.getElementById('editorialVideo').value.trim()
+                }
+            }
+
+            data.langs.forEach(l => {
+                const code = document.getElementById('starter-' + l)?.value.trim()
+                if (code) payload.starterCode[l] = code
+            })
+
+            const btn = document.getElementById('submitBtn')
+            btn.disabled = true
+            btn.textContent = 'Publishing...'
+
+            try {
+                const res = await fetch(`${API}/admin/problems`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                })
+                const result = await res.json()
+
+                if (result.success) {
+                    showToast('Problem published successfully!')
+                    setTimeout(() => window.location.href = '/admin/problems', 1500)
+                } else {
+                    showToast(result.message || 'Error publishing', 'error')
+                    btn.disabled = false
+                    btn.textContent = 'Publish Problem'
+                }
+            } catch (e) {
+                showToast('Could not reach server', 'error')
+                btn.disabled = false
+                btn.textContent = 'Publish Problem'
+            }
+        }
+
+        // ── Reset ──
+        function resetForm() {
+            if (confirm('Are you sure you want to clear all fields?')) {
+                window.location.reload()
+            }
+        }
+
+        // ── Toast ──
+        function showToast(msg, type = 'success') {
+            const t = document.getElementById('toast')
+            t.textContent = msg
+            t.style.display = 'block'
+            t.style.borderLeftColor = type === 'error' ? '#dc3545' : '#28a745'
+            t.style.color = type === 'error' ? '#dc3545' : '#333'
+            setTimeout(() => t.style.display = 'none', 3000)
+        }
+
+    </script>
+</body>
+
+</html>
