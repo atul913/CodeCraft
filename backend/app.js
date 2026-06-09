@@ -7,6 +7,10 @@ dotenv.config()
 const adminRoutes = require('./routes/admin.routes')
 const problemRoutes = require('./routes/problem.routes')
 const authRoutes = require('./routes/auth.routes')
+const submissionRoutes = require('./routes/submission.routes')
+const userRoutes = require('./routes/user.routes')
+const leaderboardRoutes = require('./routes/leaderboard.routes')
+const commentRoutes = require('./routes/comment.routes')
 
 const app = express()
 
@@ -24,32 +28,47 @@ app.use(express.static(path.join(__dirname, '../frontend/assets')))
 app.use('/api/admin', adminRoutes)
 app.use('/api/problems', problemRoutes)
 app.use('/api/auth', authRoutes)
+app.use('/api/submissions', submissionRoutes)
+app.use('/api/users', userRoutes)
+app.use('/api/leaderboard', leaderboardRoutes)
+app.use('/api/comments', commentRoutes)
 
 // ── Page Routes ──
 app.get('/', (req, res) => {
-  res.render('index');
+  res.render('index', { pageTitle: "CodeCraft - Home" });
 })
 
 // route index.html
 app.get('/login', (req, res) => {
-  res.render('login');
+  res.render('login', {pageTitle:"CodeCraft - Login", googleClientId: process.env.GOOGLE_CLIENT_ID || ''});
 })
 
 // route index.html
 app.get('/register', (req, res) => {
-  res.render('register');
+  res.render('register', {pageTitle:"CodeCraft - Register", googleClientId: process.env.GOOGLE_CLIENT_ID || ''});
 })
 
 // route index.html
 app.get('/problems', (req, res) => {
-  res.render('problems-list');
+  res.render('problems-list', {pageTitle:"CodeCraft - Problems"});
 })
 
 // route for problem.html
 app.get('/problems/:slug', (req, res) => {
-  res.render('problem');
+  res.render('problem', {pageTitle:"CodeCraft - Problem"});
 })
 
+app.get('/profile', (req, res) => {
+  res.render('profile', {pageTitle:"CodeCraft - Profile"});
+})
+
+app.get('/profile/:username', (req, res) => {
+  res.render('profile', {pageTitle:"CodeCraft - Profile"});
+})
+
+app.get('/ratings', (req, res) => {
+  res.render('ratings',  {pageTitle:"CodeCraft - Ratings"})
+})
 
 // route for admin / problem-form.html
 app.get('/admin/problems/new', (req, res) => {

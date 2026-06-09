@@ -2,150 +2,470 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Problem — CodeCraft</title>
-    <link rel="stylesheet" href="/css/auth.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        <%= pageTitle %>
+    </title>
+    <link rel="stylesheet" href="/css/base.css">
+    <link rel="stylesheet" href="/css/main.css">
     <link rel="stylesheet" href="/css/editor.css">
 </head>
 
 <body>
+    <header class="problem-nav">
+        <div class="problem-nav-inner">
 
-    <div class="main" style="display:flex; flex:1; overflow:hidden; background:#fff;">
+            <!-- Left: small logo -->
+            <a href="/" class="problem-nav-brand">
+                <div class="problem-nav-logo">
+                    <div class="logo-icon-sm"></div>
+                    <span>CODE<span class="highlight">CRAFT</span></span>
+                </div>
+            </a>
 
-        <!-- Left: Problem description -->
-        <div class="left-panel"
-            style="width:45%; border-right:1px solid #ccc; display:flex; flex-direction:column; overflow:hidden;">
-            <div class="panel-tabs"
-                style="display:flex; border-bottom:1px solid #ccc; background:#fafbfc; flex-shrink:0;">
-                <button class="panel-tab active" onclick="switchTab('description', this)"
-                    style="padding:10px 16px; font-size:13px; cursor:pointer; border:none; border-right:1px solid #ccc; background:none; font-weight:bold; color:#3b5998;">Description</button>
-                <button class="panel-tab" onclick="switchTab('submissions', this)"
-                    style="padding:10px 16px; font-size:13px; cursor:pointer; border:none; border-right:1px solid #ccc; background:none; font-weight:bold; color:#555;">Submissions</button>
-            </div>
+            <!-- Center: nav tabs -->
+            <nav class="problem-nav-tabs">
+                <span class="pnav-item" onclick="window.location.href='/'">HOME</span>
+                <span class="pnav-item">CONTESTS</span>
+                <span class="pnav-item pnav-active" onclick="window.location.href='/problems'">PROBLEM</span>
+                <span class="pnav-item" onclick="window.location.href='/ratings'">RATING</span>
+                <span class="pnav-item">HELP</span>
+            </nav>
 
-            <!-- Description tab -->
-            <div class="panel-content" id="tab-description" style="flex:1; overflow-y:auto; padding:20px;">
-                <div class="loading">Loading problem...</div>
-            </div>
-
-            <!-- Submissions tab -->
-            <div class="panel-content" id="tab-submissions"
-                style="display:none; flex:1; overflow-y:auto; padding:20px;">
-                <div class="loading">No submissions yet.</div>
-            </div>
-        </div>
-
-        <!-- Right: Editor -->
-        <div class="right-panel" style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
-
-            <div class="editor-toolbar"
-                style="background:#fafbfc; border-bottom:1px solid #ccc; padding:8px 15px; display:flex; align-items:center; gap:10px; flex-shrink:0;">
-                <label style="font-size:13px; font-weight:bold; color:#444;">Language:</label>
-                <select id="langSelect" onchange="onLangChange()"
-                    style="border:1px solid #aaa; border-radius:3px; padding:4px 8px; font-size:13px; outline:none;">
-                    <option value="">— select —</option>
-                </select>
-                <label style="margin-left:auto; font-size:13px; font-weight:bold; color:#444;">Theme:</label>
-                <select id="themeSelect" onchange="onThemeChange()"
-                    style="border:1px solid #aaa; border-radius:3px; padding:4px 8px; font-size:13px; outline:none;">
-                    <option value="vs">Light</option>
-                    <option value="vs-dark">Dark</option>
-                </select>
-            </div>
-
-            <div id="monaco-editor" style="flex:1; overflow:hidden;"></div>
-
-            <div class="result-panel" id="resultPanel"
-                style="background:#fafbfc; border-top:1px solid #ccc; padding:15px; font-size:13px; flex-shrink:0; display:none; max-height:200px; overflow-y:auto;">
-                <div class="result-title" id="resultTitle"
-                    style="font-weight:bold; margin-bottom:10px; font-size:14px;"></div>
-                <div id="resultBody"></div>
-            </div>
-
-            <div class="action-bar"
-                style="background:#fafbfc; border-top:1px solid #ccc; padding:10px 15px; display:flex; align-items:center; gap:10px; flex-shrink:0;">
-                <button class="btn-cancel" id="runBtn" onclick="runCode()">Run Code</button>
-                <button class="btn-submit" id="submitBtn" onclick="submitCode()">Submit</button>
-                <span class="action-spacer" style="flex:1;"></span>
-                <span class="action-info" id="actionInfo" style="font-size:12px; color:#666;"></span>
+            <!-- Right: auth buttons -->
+            <div class="problem-nav-auth" id="auth-section">
+                <a href="/login" class="pnav-btn">Enter</a>
+                <span class="pnav-sep">|</span>
+                <a href="/register" class="pnav-btn">Register</a>
             </div>
 
         </div>
+
+        <script>
+            function renderAuthSection() {
+                const authSection = document.getElementById('auth-section')
+                const token = localStorage.getItem('token')
+                const userData = localStorage.getItem('user')
+                if (!token || !userData) return
+
+                const user = JSON.parse(userData)
+                authSection.innerHTML = `
+                <a href="/profile/${user.username}" class="pnav-btn pnav-username">${user.username}</a>
+                <span class="pnav-sep">|</span>
+                <a class="pnav-btn" onclick="logout()" style="cursor:pointer;">Logout</a>
+            `
+            }
+
+            async function logout() {
+                const refreshToken = localStorage.getItem('refreshToken');
+                const apiBase = (typeof API !== 'undefined') ? API : '/api';
+
+                if (refreshToken) {
+                    try {
+                        await fetch(`${apiBase}/auth/logout`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ refreshToken })
+                        });
+                    } catch (e) {
+                        console.error('Revoke refresh token failed: ', e);
+                    }
+                }
+
+                showToast('Logged out successfully', 'success');
+                localStorage.removeItem('token')
+                localStorage.removeItem('refreshToken')
+                localStorage.removeItem('user')
+
+                setTimeout(() => {
+                    window.location.href = '/login';
+                }, 1500);
+            }
+
+            document.addEventListener('DOMContentLoaded', renderAuthSection)
+        </script>
+    </header>
+
+    <div class="problem-page">
+        <!-- ── Main split layout ── -->
+        <div class="main" id="mainArea">
+
+            <!-- LEFT: Problem description -->
+            <!-- LEFT: Problem description -->
+            <div class="left-panel">
+
+                <!-- Three tabs above title -->
+                <div class="left-panel-tabs">
+                    <button class="lptab active" onclick="switchLeftTab('description', this)">Description</button>
+                    <button class="lptab" onclick="switchLeftTab('submissions', this)">Submissions</button>
+                    <button class="lptab" onclick="switchLeftTab('solutions',   this)">Solutions</button>
+                    <button class="lptab" onclick="switchLeftTab('discussion', this)">Discussion</button>
+                </div>
+
+                <!-- Problem title + meta — shown on description tab only -->
+                <div class="problem-header" id="problemHeaderBlock">
+                    <h1 id="problemTitle">Loading...</h1>
+                    <div class="problem-meta">
+                        <span id="timeLimitMeta" style="color:var(--color-text-dim)"></span>
+                        <span id="memLimitMeta" style="color:var(--color-text-dim)"></span>
+                        <span id="diffBadge" class="badge"></span>
+                        <span id="categoryTags" style="font-size:12px; color:var(--color-text-dim)"></span>
+                    </div>
+                </div>
+
+                <!-- Description tab -->
+                <div class="panel-content" id="tab-description">
+                    <div class="loading">Loading problem...</div>
+                </div>
+
+                <!-- Submissions tab -->
+                <div class="panel-content" id="tab-submissions" style="display:none;">
+                    <div id="submissionsContent">
+                        <div class="loading">Click to load your submissions.</div>
+                    </div>
+                </div>
+
+                <!-- Solutions tab -->
+                <div class="panel-content" id="tab-solutions" style="display:none;">
+                    <div class="loading" style="padding:20px 0; color:var(--color-text-dim)">
+                        Solutions will be available after you solve the problem.
+                    </div>
+                </div>
+
+                <!-- Discussion tab -->
+                <div class="panel-content" id="tab-discussion" style="display:none;">
+                    <div id="discussionContent">
+                        <div class="loading">Loading discussion...</div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- RIGHT: Editor -->
+            <div class="right-panel">
+
+                <!-- Run/Submit on TOP -->
+                <div class="editor-action-bar">
+                    <label>Language:</label>
+                    <select id="langSelect" onchange="onLangChange()">
+                        <option value="">— select —</option>
+                    </select>
+
+                    <label style="margin-left:12px;">Theme:</label>
+                    <select id="themeSelect" onchange="onThemeChange()">
+                        <option value="vs">Light</option>
+                        <option value="vs-dark">Dark</option>
+                    </select>
+
+                    <span class="ebar-spacer"></span>
+                    <span class="ebar-info" id="actionInfo"></span>
+                    <button class="btn-run" id="runBtn" onclick="runCode()">&#9654; Run</button>
+                    <button class="btn-submit" id="submitBtn" onclick="submitCode()">Submit</button>
+                </div>
+
+                <div id="monaco-editor"></div>
+
+                <div class="result-panel" id="resultPanel">
+                    <div class="result-title" id="resultTitle"></div>
+                    <div id="resultBody"></div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- My Status tab — full width -->
+        <div id="statusArea"
+            style="display:none; flex:1; overflow-y:auto; padding:20px 24px; background:var(--color-surface);">
+            <div id="submissionsContent">
+                <div class="loading">Loading your submissions...</div>
+            </div>
+        </div>
+
     </div>
 
-    <!-- Monaco from CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
 
     <script>
-        const API = 'http://127.0.0.1:5000/api'
+        const API = '/api'
+        const slug = window.location.pathname.split('/').pop()
 
         let problem = null
         let editor = null
+        let submissionsLoaded = false
 
-        // ── Get slug from URL ──
-        const slug = window.location.pathname.split('/').pop()
+        function getToken() { return localStorage.getItem('token') }
+        function isLoggedIn() { return !!getToken() }
+
+        function requireAuth() {
+            if (!isLoggedIn()) {
+                showToast('Please login to run or submit code', 'warning')
+                setTimeout(() => window.location.href = '/login', 1500)
+                return false
+            }
+            return true
+        }
+
+        // ── Toast ──
+        function showToast(msg, type = 'info') {
+            // remove existing
+            const existing = document.getElementById('globalToast')
+            if (existing) existing.remove()
+
+            const colors = {
+                info: { bg: '#333', border: '#555' },
+                success: { bg: '#155724', border: '#28a745' },
+                warning: { bg: '#856404', border: '#f0ad4e' },
+                error: { bg: 'var(--color-danger)', border: '#c00' }
+            }
+            const c = colors[type] || colors.info
+
+            const toast = document.createElement('div')
+            toast.id = 'globalToast'
+            toast.style.cssText = `
+                position: fixed; top: 32px; z-index: 9999; left: 50%; transform: translateX(-50%);
+                background: ${c.bg}; color: #fff;
+                border-left: 4px solid ${c.border};
+                padding: 12px 18px; font-size: 13px;
+                font-family: var(--font-base);
+                box-shadow: 0 2px 8px rgba(0,0,0,.2);
+                max-width: 320px; line-height: 1.5;
+                opacity: 0; transition: opacity .2s;
+    `
+            toast.textContent = msg
+            document.body.appendChild(toast)
+
+            // fade in
+            requestAnimationFrame(() => { toast.style.opacity = '1' })
+
+            // fade out and remove
+            setTimeout(() => {
+                toast.style.opacity = '0'
+                setTimeout(() => toast.remove(), 300)
+            }, type === 'warning' ? 1200 : 3000)
+        }
+
+        // ── Main tab switch ──
+        // ── Left panel tab switch ──
+        function switchLeftTab(tab, btn) {
+            document.querySelectorAll('.lptab').forEach(t => t.classList.remove('active'))
+            btn.classList.add('active')
+
+            // show/hide panels
+            document.getElementById('tab-description').style.display =
+                tab === 'description' ? 'block' : 'none'
+            document.getElementById('tab-submissions').style.display =
+                tab === 'submissions' ? 'block' : 'none'
+            document.getElementById('tab-solutions').style.display =
+                tab === 'solutions' ? 'block' : 'none'
+            document.getElementById('tab-discussion').style.display =
+                tab === 'discussion' ? 'block' : 'none'
+
+            if (tab === 'discussion' && problem) loadDiscussion()
+
+
+            document.getElementById('problemHeaderBlock').style.display =
+                tab === 'description' ? 'block' : 'none'
+
+            if (tab === 'submissions' && problem) loadSubmissions()
+        }
 
         // ── Load problem ──
         async function loadProblem() {
             try {
                 const res = await fetch(`${API}/problems/${slug}`)
                 const data = await res.json()
-                if (!data.success) { document.getElementById('problemTitle').textContent = 'Problem not found'; return }
-
+                if (!data.success) {
+                    document.getElementById('problemTitle').textContent = 'Problem not found'
+                    document.getElementById('tab-description').innerHTML =
+                        '<p style="color:var(--color-danger)">This problem does not exist or has been removed.</p>'
+                    return
+                }
                 problem = data.data
                 renderProblem()
                 setupEditor()
             } catch (e) {
                 document.getElementById('problemTitle').textContent = 'Could not load problem'
+                document.getElementById('tab-description').innerHTML =
+                    '<p style="color:var(--color-danger)">Could not reach the server.</p>'
             }
         }
 
-        // ── Render problem info ──
+        // ── Render problem ──
         function renderProblem() {
             document.title = `${problem.title} — CodeCraft`
 
-            const desc = document.getElementById('tab-description')
+            document.getElementById('problemTitle').textContent = problem.title
 
-            desc.innerHTML = ` <span class="subbar-title" id="problemTitle"
-            style="font-weight:bold; font-size:15px; color:#111;">${problem.title}</span>
-        <span id="diffBadge" class="badge badge- ${problem.difficulty.toLowerCase()}">${problem.difficulty}</span>
-        <span id="categoryTags" style="color:#888;font-size:11px">${(problem.categories || [])}</span>
+            if (problem.timeLimit)
+                document.getElementById('timeLimitMeta').textContent =
+                    `time limit per test: ${problem.timeLimit / 1000} seconds`
 
-      <div class="problem-section" style="margin-bottom:20px;">
-        <p style="line-height:1.6; margin-bottom:10px;">${escapeHtml(problem.description).replace(/\n/g, '<br>')}</p>
-      </div>
+            if (problem.memoryLimit)
+                document.getElementById('memLimitMeta').textContent =
+                    `memory limit per test: ${problem.memoryLimit} megabytes`
 
-      ${problem.constraints?.length ? `
-      <div class="problem-section" style="margin-bottom:20px;">
-        <h3 style="font-size:14px; font-weight:bold; margin-bottom:10px; border-bottom:1px solid #ccc; padding-bottom:5px; color:#3b5998;">Constraints</h3>
-        <ul style="padding-left:20px; line-height:1.6;">${problem.constraints.map(c => `<li>${escapeHtml(c)}</li>`).join('')}</ul>
-      </div>` : ''}
+            const badge = document.getElementById('diffBadge')
+            badge.className = `badge badge-${problem.difficulty.toLowerCase()}`
+            badge.textContent = problem.difficulty
 
-      ${problem.visibleTestCases?.length ? `
-      <div class="problem-section" style="margin-bottom:20px;">
-        <h3 style="font-size:14px; font-weight:bold; margin-bottom:10px; border-bottom:1px solid #ccc; padding-bottom:5px; color:#3b5998;">Examples</h3>
-        ${problem.visibleTestCases.map((tc, i) => `
-          <div class="tc-block" style="background:#fafbfc; border:1px solid #ccc; border-radius:4px; padding:12px 15px; margin-bottom:12px; font-family:monospace; font-size:13px;">
-            <div class="tc-block-label" style="font-family:inherit; font-size:12px; font-weight:bold; color:#555; margin-bottom:8px;">Example ${i + 1}</div>
-            <div class="tc-row" style="margin-bottom:5px; line-height:1.4;"><span style="color:#666; font-weight:bold;">Input:  </span>${escapeHtml(tc.input)}</div>
-            <div class="tc-row" style="margin-bottom:5px; line-height:1.4;"><span style="color:#666; font-weight:bold;">Output: </span>${escapeHtml(tc.expectedOutput)}</div>
-            ${tc.explanation ? `<div class="tc-row" style="margin-bottom:5px; line-height:1.4;"><span style="color:#666; font-weight:bold;">Explanation: </span>${escapeHtml(tc.explanation)}</div>` : ''}
-          </div>
-        `).join('')}
-      </div>` : ''}
+            document.getElementById('categoryTags').textContent =
+                (problem.categories || []).join(' · ')
 
-      ${problem.timeLimit || problem.memoryLimit ? `
-      <div class="problem-section" style="margin-bottom:20px;">
-        <h3 style="font-size:14px; font-weight:bold; margin-bottom:10px; border-bottom:1px solid #ccc; padding-bottom:5px; color:#3b5998;">Limits</h3>
-        <p style="line-height:1.6;">Time Limit: ${problem.timeLimit}ms &nbsp;|&nbsp; Memory Limit: ${problem.memoryLimit}MB</p>
-      </div>` : ''}
-    `
+            document.getElementById('tab-description').innerHTML = `
+
+                <div class="problem-section">
+                    <p>${escapeHtml(problem.description)}</p>
+                </div>
+
+                ${problem.inputFormat ? `
+                <div class="problem-section">
+                    <h3>Input</h3>
+                    <p>${renderMarkdown(problem.inputFormat)}</p>
+                </div>` : ''}
+
+                ${problem.outputFormat ? `
+                <div class="problem-section">
+                    <h3>Output</h3>
+                    <p>${renderMarkdown(problem.outputFormat)}</p>
+                </div>` : ''}
+
+                ${problem.constraints?.length ? `
+                <div class="problem-section">
+                    <h3>Constraints</h3>
+                    <ul>${problem.constraints.map(c => `<li>${renderMarkdown(c)}</li>`).join('')}</ul>
+                </div>` : ''}
+
+                ${problem.visibleTestCases?.length ? `
+                <div class="problem-section">
+                    <h3>Example${problem.visibleTestCases.length > 1 ? 's' : ''}</h3>
+                    <table class="cf-examples-table">
+                        <thead><tr><th>Input</th><th>Output</th></tr></thead>
+                        <tbody>
+                            ${problem.visibleTestCases.map((tc, i) => `
+                            <tr>
+                                <td>
+                                    <div class="cf-tc-label">Example ${i + 1}</div>
+                                    <pre class="cf-pre">${escapeHtml(tc.input)}</pre>
+                                </td>
+                                <td>
+                                    <pre class="cf-pre">${escapeHtml(tc.expectedOutput)}</pre>
+                                    ${tc.explanation
+                    ? `<div class="cf-explanation"><strong>Note:</strong> ${renderMarkdown(tc.explanation)}</div>`
+                    : ''}
+                                </td>
+                            </tr>`).join('')}
+                        </tbody>
+                    </table>
+                </div>` : ''}
+
+                ${problem.tags?.length ? `
+                <div class="problem-section">
+                    <h3>Tags</h3>
+                    <div class="cf-tags">
+                        ${problem.tags.map(t => `<span class="cf-tag">${escapeHtml(t)}</span>`).join('')}
+                    </div>
+                </div>` : ''}
+
+                ${isLoggedIn() && problem.visibleTestCases?.length ? `
+                <div class="problem-section" id="visibleTCSection">
+                    <h3>Test Cases</h3>
+                    <div id="visibleTCTable">
+                        ${problem.visibleTestCases.map((tc, i) => `
+                        <div class="vtc-block" id="vtc-${i}">
+                            <div class="vtc-header">
+                                <span class="vtc-label">Test Case ${i + 1}</span>
+                                <span class="vtc-status" id="vtc-status-${i}"></span>
+                            </div>
+                            <div class="vtc-row">
+                                <div class="vtc-col">
+                                    <div class="vtc-col-label">Input</div>
+                                    <pre class="vtc-pre">${escapeHtml(tc.input)}</pre>
+                                </div>
+                                <div class="vtc-col">
+                                    <div class="vtc-col-label">Expected Output</div>
+                                    <pre class="vtc-pre">${escapeHtml(tc.expectedOutput)}</pre>
+                                </div>
+                                <div class="vtc-col" id="vtc-output-col-${i}" style="display:none">
+                                    <div class="vtc-col-label">Your Output</div>
+                                    <pre class="vtc-pre" id="vtc-output-${i}"></pre>
+                                </div>
+                            </div>
+                        </div>
+                        `).join('')}
+                    </div>
+                </div>` : ''}`
+
+            document.getElementById('tab-solutions').innerHTML = `
+                <div class="problem-section markdown-content">
+                    ${renderMarkdown(problem.editorial?.content)}
+                </div>
+            `
+
+
         }
 
-        // ── Setup Monaco ──
+        // ── Load submissions ──
+        async function loadSubmissions() {
+            if (!isLoggedIn()) {
+                document.getElementById('submissionsContent').innerHTML =
+                    `<p><a href="/login">Login</a> to view your submissions.</p>`
+                return
+            }
+            if (submissionsLoaded) return
+            submissionsLoaded = true
+
+            document.getElementById('submissionsContent').innerHTML =
+                '<div class="loading">Loading submissions...</div>'
+
+            try {
+                const res = await fetch(`${API}/submissions/problem/${problem._id}`, {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                })
+                const data = await res.json()
+
+                if (!data.success || data.data.length === 0) {
+                    document.getElementById('submissionsContent').innerHTML =
+                        '<p style="color:var(--color-text-dim)">No submissions yet for this problem.</p>'
+                    return
+                }
+
+                const vcls = v => ({
+                    'Accepted': 'verdict-accepted', 'Wrong Answer': 'verdict-wrong',
+                    'Time Limit Exceeded': 'verdict-tle', 'Memory Limit Exceeded': 'verdict-tle',
+                    'Compile Error': 'verdict-error', 'Runtime Error': 'verdict-error'
+                }[v] || '')
+
+                const rows = data.data.map(s => {
+                    const date = new Date(s.submittedAt).toLocaleString('en-GB', {
+                        day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                    })
+                    return `<tr>
+                    <td class="${vcls(s.verdict)}">${s.verdict}</td>
+                    <td>${s.language}</td>
+                    <td>${s.passedTestCases} / ${s.totalTestCases}</td>
+                    <td>${s.runtimeMs ? s.runtimeMs + 'ms' : '—'}</td>
+                    <td style="color:var(--color-text-dim);font-size:12px">${date}</td>
+                </tr>`
+                }).join('')
+
+                document.getElementById('submissionsContent').innerHTML = `
+                <h3 style="margin-bottom:14px;font-size:15px;">My Submissions</h3>
+                <table class="sub-table">
+                    <thead><tr>
+                        <th>Verdict</th><th>Language</th><th>Test Cases</th>
+                        <th>Runtime</th><th>Submitted</th>
+                    </tr></thead>
+                    <tbody>${rows}</tbody>
+                </table>`
+            } catch (e) {
+                document.getElementById('submissionsContent').innerHTML =
+                    '<p style="color:var(--color-danger)">Could not load submissions.</p>'
+            }
+        }
+
+        // ── Monaco setup ──
         function setupEditor() {
-            // populate language dropdown
             const select = document.getElementById('langSelect')
             select.innerHTML = '<option value="">— select —</option>'
                 ; (problem.supportedLanguages || []).forEach(lang => {
@@ -155,19 +475,17 @@
                     select.appendChild(opt)
                 })
 
-            // load Monaco
             require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' } })
             require(['vs/editor/editor.main'], () => {
                 editor = monaco.editor.create(document.getElementById('monaco-editor'), {
                     value: '// Select a language to load starter code',
                     language: 'plaintext',
                     theme: 'vs',
-                    fontSize: 13,
+                    fontSize: 14,
                     minimap: { enabled: false },
                     scrollBeyondLastLine: false,
                     automaticLayout: true,
-                    tabSize: 2,
-                    wordWrap: 'on',
+                    tabSize: 4,
                     lineNumbers: 'on',
                     renderLineHighlight: 'line',
                     fontFamily: "'Courier New', monospace"
@@ -175,167 +493,423 @@
             })
         }
 
-        // ── Language change ──
         function onLangChange() {
             if (!editor || !problem) return
             const lang = document.getElementById('langSelect').value
             if (!lang) return
-
-            // set starter code
-            const starterCode = problem.starterCode?.[lang] || `// Write your ${lang} solution here`
+            const starterCode = problem.starterCode?.get
+                ? problem.starterCode.get(lang)
+                : problem.starterCode?.[lang] ?? `// Write your ${lang} solution here\n`
             editor.setValue(starterCode)
-
-            // set Monaco language
-            const monacoLang = {
-                python: 'python', javascript: 'javascript',
-                cpp: 'cpp', java: 'java'
-            }[lang] || 'plaintext'
-
-            monaco.editor.setModelLanguage(editor.getModel(), monacoLang)
+            monaco.editor.setModelLanguage(editor.getModel(),
+                { python: 'python', javascript: 'javascript', cpp: 'cpp', java: 'java' }[lang] || 'plaintext')
         }
 
-        // ── Theme change ──
         function onThemeChange() {
             if (!editor) return
             monaco.editor.setTheme(document.getElementById('themeSelect').value)
         }
 
-        // ── Tab switch ──
-        function switchTab(tab, btn) {
-            document.querySelectorAll('.panel-tab').forEach(t => { t.style.color = '#555'; t.style.borderBottom = 'none'; })
-            btn.style.color = '#3b5998'
-            btn.style.borderBottom = '2px solid #3b5998'
-            document.getElementById('tab-description').style.display = tab === 'description' ? 'block' : 'none'
-            document.getElementById('tab-submissions').style.display = tab === 'submissions' ? 'block' : 'none'
-        }
-
-        // ── Run code ──
-        async function runCode() {
-            if (!validateBeforeSubmit()) return
-            setLoading(true, 'Running...')
-            showResult('running', 'Running against visible test cases...', [])
-
-            const payload = {
-                problemId: problem._id,
-                language: document.getElementById('langSelect').value,
-                code: editor.getValue(),
-                isRun: true
-            }
-
-            try {
-                const res = await fetch(`${API}/submissions/run`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                })
-                const data = await res.json()
-                handleResult(data, true)
-            } catch (e) {
-                showResult('error', 'Could not reach server', [])
-            } finally {
-                setLoading(false)
-            }
-        }
-
-        // ── Submit code ──
-        async function submitCode() {
-            if (!validateBeforeSubmit()) return
-            setLoading(true, 'Submitting...')
-            showResult('running', 'Judging submission...', [])
-
-            const payload = {
-                problemId: problem._id,
-                language: document.getElementById('langSelect').value,
-                code: editor.getValue(),
-                isRun: false
-            }
-
-            try {
-                const res = await fetch(`${API}/submissions/submit`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                })
-                const data = await res.json()
-                handleResult(data, false)
-            } catch (e) {
-                showResult('error', 'Could not reach server', [])
-            } finally {
-                setLoading(false)
-            }
-        }
-
-        // ── Handle result ──
-        function handleResult(data, isRun) {
-            if (!data.success) { showResult('error', data.message || 'Error', []); return }
-
-            const sub = data.data
-            const verdict = sub.verdict
-            const type = verdict === 'Accepted' ? 'accepted' : verdict.includes('Time') ? 'tle' : verdict.includes('Compile') || verdict.includes('Runtime') ? 'error' : 'wrong'
-
-            const summary = isRun
-                ? `${sub.passedTestCases}/${sub.totalTestCases} test cases passed`
-                : `${verdict} — ${sub.passedTestCases}/${sub.totalTestCases} test cases`
-
-            const details = (sub.executionDetails || []).map(d => ({
-                id: d.testCaseId, status: d.status
-            }))
-
-            const extra = sub.runtimeMs ? `Runtime: ${sub.runtimeMs}ms  |  Memory: ${sub.memoryUsageMb}MB` : ''
-            document.getElementById('actionInfo').textContent = extra
-
-            showResult(type, `${verdict} — ${summary}`, details, sub.errorMessage)
-        }
-
-        // ── Show result panel ──
-        function showResult(type, title, details, errorMsg) {
-            const panel = document.getElementById('resultPanel')
-            const titleEl = document.getElementById('resultTitle')
-            const bodyEl = document.getElementById('resultBody')
-
-            panel.style.display = 'block'
-
-            const colors = { accepted: '#28a745', wrong: '#dc3545', error: '#6c757d', tle: '#fd7e14', running: '#6c757d' }
-            titleEl.style.color = colors[type] || '#333'
-            titleEl.textContent = title
-
-            if (errorMsg) {
-                bodyEl.innerHTML = `<div class="result-tc" style="background:#fff; border:1px solid #ccc; padding:10px; margin-bottom:8px; font-family:monospace;"><pre style="font-size:11px;white-space:pre-wrap">${escapeHtml(errorMsg)}</pre></div>`
-                return
-            }
-
-            bodyEl.innerHTML = details.map(d => `
-      <div class="result-tc" style="background:#fff; border:1px solid #ccc; padding:10px; margin-bottom:8px; font-family:monospace;">
-        <div class="result-tc-header" style="color:${d.status === 'Passed' ? '#28a745' : '#dc3545'}; font-weight:bold;">
-          ${d.status === 'Passed' ? '✓' : '✕'} ${d.id} — ${d.status}
-        </div>
-      </div>
-    `).join('') || ''
-        }
-
-        // ── Validate ──
         function validateBeforeSubmit() {
-            const lang = document.getElementById('langSelect').value
-            if (!lang) { alert('Please select a language'); return false }
+            if (!document.getElementById('langSelect').value) { alert('Please select a language'); return false }
             if (!editor || !editor.getValue().trim()) { alert('Please write some code'); return false }
             return true
         }
 
-        // ── Loading state ──
         function setLoading(on, msg) {
             document.getElementById('runBtn').disabled = on
             document.getElementById('submitBtn').disabled = on
-            if (msg) document.getElementById('actionInfo').textContent = msg
+            document.getElementById('actionInfo').textContent = msg || ''
         }
 
-        // ── Escape HTML ──
+        async function runCode() {
+            if (!requireAuth() || !validateBeforeSubmit()) return
+            setLoading(true, 'Running...')
+            showResult('running', 'Running against visible test cases...', [], '')
+            try {
+                const res = await fetch(`${API}/submissions/run`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
+                    body: JSON.stringify({ problemId: problem._id, language: document.getElementById('langSelect').value, code: editor.getValue() })
+                })
+                handleResult(await res.json(), true)
+            } catch (e) { showResult('error', 'Could not reach server', [], '') }
+            finally { setLoading(false, '') }
+        }
+
+        async function submitCode() {
+            if (!requireAuth() || !validateBeforeSubmit()) return
+            setLoading(true, 'Judging...')
+            showResult('running', 'Judging your submission...', [], '')
+            try {
+                const res = await fetch(`${API}/submissions/submit`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
+                    body: JSON.stringify({ problemId: problem._id, language: document.getElementById('langSelect').value, code: editor.getValue() })
+                })
+                handleResult(await res.json(), false)
+                if (submissionsLoaded) { submissionsLoaded = false; loadSubmissions() }
+            } catch (e) { showResult('error', 'Could not reach server', [], '') }
+            finally { setLoading(false, '') }
+        }
+
+        function handleResult(data, isRun) {
+            if (!data.success) {
+                showResult('error', data.message || 'Something went wrong', [], '')
+                showToast(data.message || 'Something went wrong', 'error')
+                return
+            }
+
+            const sub = data.data
+            const verdict = sub.verdict
+            const typeMap = {
+                'Accepted': 'accepted',
+                'Wrong Answer': 'wrong',
+                'Time Limit Exceeded': 'tle',
+                'Memory Limit Exceeded': 'tle',
+                'Compile Error': 'error',
+                'Runtime Error': 'error'
+            }
+
+            const summary = isRun
+                ? `${sub.passedTestCases} / ${sub.totalTestCases} visible test cases passed`
+                : `${verdict} — ${sub.passedTestCases} / ${sub.totalTestCases} test cases`
+
+            const details = (sub.executionDetails || []).map(d => ({
+                id: d.testCaseId,
+                status: d.status,
+                runtimeMs: d.runtimeMs,
+                output: d.output || '',
+                expected: d.expected || ''
+            }))
+
+            if (sub.runtimeMs)
+                document.getElementById('actionInfo').textContent = `${sub.runtimeMs}ms`
+
+            showResult(typeMap[verdict] || 'wrong', summary, details, sub.errorMessage || '')
+
+            // update individual visible test case blocks
+            if (isRun) updateVisibleTCBlocks(details)
+
+            // toast on submit verdict
+            if (!isRun) {
+                if (verdict === 'Accepted') showToast('✓ Accepted! All test cases passed.', 'success')
+                else showToast(`✕ ${verdict}`, 'error')
+            }
+        }
+
+        function showResult(type, title, details, errorMsg) {
+            const panel = document.getElementById('resultPanel')
+            const titleEl = document.getElementById('resultTitle')
+            const bodyEl = document.getElementById('resultBody')
+            panel.classList.add('show')
+            const colorMap = {
+                accepted: 'var(--color-success)', wrong: 'var(--color-danger)',
+                error: 'var(--color-text-dim)', tle: '#fd7e14', running: 'var(--color-text-dim)'
+            }
+            titleEl.style.color = colorMap[type] || 'var(--color-text)'
+            titleEl.textContent = title
+            if (errorMsg) {
+                bodyEl.innerHTML = `<div class="result-tc"><pre style="font-size:12px;white-space:pre-wrap;color:var(--color-danger)">${escapeHtml(errorMsg)}</pre></div>`
+                return
+            }
+            bodyEl.innerHTML = details.map(d => `
+            <div class="result-tc">
+                <div class="result-tc-header ${d.status === 'Passed' ? 'pass' : 'fail'}">
+                    ${d.status === 'Passed' ? '✓' : '✕'} ${d.id || 'Test case'} — ${d.status}
+                    ${d.runtimeMs ? `<span class="result-tc-time">${d.runtimeMs}ms</span>` : ''}
+                </div>
+            </div>`).join('') || ''
+        }
+
         function escapeHtml(str) {
-            return String(str || '')
-                .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+            return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
         }
 
-        // ── Init ──
         loadProblem()
+
+        function updateVisibleTCBlocks(details) {
+            details.forEach((d, i) => {
+                const block = document.getElementById(`vtc-${i}`)
+                const statusEl = document.getElementById(`vtc-status-${i}`)
+                const outputCol = document.getElementById(`vtc-output-col-${i}`)
+                const outputEl = document.getElementById(`vtc-output-${i}`)
+
+                if (!block) return
+
+                const passed = d.status === 'Passed'
+
+                // color the whole block
+                block.style.borderColor = passed
+                    ? 'var(--color-success)'
+                    : 'var(--color-danger)'
+                block.style.background = passed ? '#f0fff4' : '#fff5f5'
+
+                // status badge
+                statusEl.textContent = passed ? '✓ Passed' : `✕ ${d.status}`
+                statusEl.style.color = passed ? 'var(--color-success)' : 'var(--color-danger)'
+                statusEl.style.fontWeight = 'bold'
+
+                // show program output column
+                if (outputCol && outputEl) {
+                    outputCol.style.display = 'block'
+                    outputEl.textContent = d.output || '(no output)'
+                    outputEl.style.color = passed ? 'var(--color-success)' : 'var(--color-danger)'
+                }
+            })
+        }
+
+        function renderMarkdown(text) {
+            return String(text || '')
+                // Code blocks first (protect their content)
+                .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
+                .replace(/`([^`]+)`/g, '<code>$1</code>')
+
+                // Headings
+                .replace(/^#### (.+)$/gm, '<h4>$1</h4>')
+                .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+                .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+                .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+
+                // Bold and italic
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.+?)\*/g, '<em>$1</em>')
+
+                // Lists
+                .replace(/^\- (.+)$/gm, '<li>$1</li>')
+                .replace(/(<li>[\s\S]*?<\/li>)/g, '<ul>$1</ul>')
+
+                // Paragraphs and line breaks
+                .replace(/\n\n/g, '</p><p>')
+                .replace(/\n/g, '<br>')
+        }
+
+        let discussionLoaded = false
+
+        // ── Load discussion ──
+        async function loadDiscussion() {
+            if (discussionLoaded) return
+            discussionLoaded = true
+
+            const content = document.getElementById('discussionContent')
+            content.innerHTML = '<div class="loading">Loading...</div>'
+
+            try {
+                const res = await fetch(`${API}/comments/problem/${problem._id}`)
+                const data = await res.json()
+
+                renderDiscussion(data.success ? data.data : [])
+            } catch (e) {
+                content.innerHTML = '<p style="color:var(--color-danger)">Could not load discussion.</p>'
+            }
+        }
+
+        // ── Render discussion ──
+        function renderDiscussion(comments) {
+            const content = document.getElementById('discussionContent')
+            const loggedIn = isLoggedIn()
+            const me = loggedIn ? JSON.parse(localStorage.getItem('user')) : null
+
+            const commentBox = loggedIn ? `
+        <div class="disc-post-box">
+            <textarea id="newCommentText" class="disc-textarea"
+                placeholder="Share your approach, ask a question, or help others..."></textarea>
+            <div style="display:flex; justify-content:flex-end; margin-top:6px;">
+                <button class="disc-btn-post" onclick="postComment()">Post Comment</button>
+            </div>
+        </div>` : `
+        <p class="disc-login-note">
+            <a href="/login">Login</a> to join the discussion.
+        </p>`
+
+            const commentsList = comments.length === 0
+                ? '<p style="color:var(--color-text-dim); margin-top:16px;">No comments yet. Be the first!</p>'
+                : comments.map(c => renderComment(c, me)).join('')
+
+            content.innerHTML = `
+        ${commentBox}
+        <div id="commentsList" style="margin-top:16px;">
+            ${commentsList}
+        </div>
+    `
+        }
+
+        // ── Render single comment ──
+        function renderComment(c, me) {
+            const isOwn = me && c.authorId._id === me.id
+            const upvoted = me && c.upvotes.some(u => u === me.id)
+            const timeAgo = formatTimeAgo(c.createdAt)
+
+            const repliesHtml = (c.replies || []).map(r => renderReply(r, me)).join('')
+
+            return `
+    <div class="disc-comment" id="comment-${c._id}">
+        <div class="disc-comment-header">
+            <a href="/profile/${c.authorId.username}" class="disc-author">${c.authorId.username}</a>
+            <span class="disc-time">${timeAgo}</span>
+            ${isOwn ? `<button class="disc-btn-delete" onclick="deleteComment('${c._id}')">Delete</button>` : ''}
+        </div>
+        <div class="disc-comment-body">${escapeHtml(c.content)}</div>
+        <div class="disc-comment-actions">
+            <button class="disc-btn-upvote ${upvoted ? 'upvoted' : ''}"
+                onclick="upvoteComment('${c._id}', this)">
+                ▲ <span class="upvote-count">${c.upvotes.length}</span>
+            </button>
+            ${isLoggedIn() ? `
+            <button class="disc-btn-reply" onclick="toggleReplyBox('${c._id}')">Reply</button>` : ''}
+        </div>
+
+        <!-- Reply input box (hidden by default) -->
+        ${isLoggedIn() ? `
+        <div class="disc-reply-box" id="replybox-${c._id}" style="display:none;">
+            <textarea class="disc-textarea disc-textarea-sm"
+                id="replytext-${c._id}"
+                placeholder="Write a reply..."></textarea>
+            <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:6px;">
+                <button class="disc-btn-cancel" onclick="toggleReplyBox('${c._id}')">Cancel</button>
+                <button class="disc-btn-post"   onclick="postReply('${c._id}')">Reply</button>
+            </div>
+        </div>` : ''}
+
+        <!-- Replies -->
+        <div class="disc-replies" id="replies-${c._id}">
+            ${repliesHtml}
+        </div>
+    </div>`
+        }
+
+        // ── Render single reply ──
+        function renderReply(r, me) {
+            const isOwn = me && r.authorId._id === me.id
+            const upvoted = me && r.upvotes.some(u => u === me.id)
+            const timeAgo = formatTimeAgo(r.createdAt)
+
+            return `
+    <div class="disc-reply" id="comment-${r._id}">
+        <div class="disc-comment-header">
+            <a href="/profile/${r.authorId.username}" class="disc-author">${r.authorId.username}</a>
+            <span class="disc-time">${timeAgo}</span>
+            ${isOwn ? `<button class="disc-btn-delete" onclick="deleteComment('${r._id}')">Delete</button>` : ''}
+        </div>
+        <div class="disc-comment-body">${escapeHtml(r.content)}</div>
+        <div class="disc-comment-actions">
+            <button class="disc-btn-upvote ${upvoted ? 'upvoted' : ''}"
+                onclick="upvoteComment('${r._id}', this)">
+                ▲ <span class="upvote-count">${r.upvotes.length}</span>
+            </button>
+        </div>
+    </div>`
+        }
+
+        // ── Post comment ──
+        async function postComment() {
+            if (!requireAuth()) return
+            const text = document.getElementById('newCommentText').value.trim()
+            if (!text) return
+
+            try {
+                const res = await fetch(`${API}/comments/problem/${problem._id}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
+                    body: JSON.stringify({ content: text })
+                })
+                const data = await res.json()
+                if (!data.success) { showToast(data.message, 'error'); return }
+
+                document.getElementById('newCommentText').value = ''
+                const me = JSON.parse(localStorage.getItem('user'))
+
+                // prepend new comment to list
+                const list = document.getElementById('commentsList')
+                list.insertAdjacentHTML('afterbegin', renderComment(data.data, me))
+                showToast('Comment posted', 'success')
+            } catch (e) {
+                showToast('Could not post comment', 'error')
+            }
+        }
+
+        // ── Toggle reply box ──
+        function toggleReplyBox(commentId) {
+            const box = document.getElementById(`replybox-${commentId}`)
+            if (!box) return
+            const isHidden = box.style.display === 'none'
+            box.style.display = isHidden ? 'block' : 'none'
+            if (isHidden) document.getElementById(`replytext-${commentId}`)?.focus()
+        }
+
+        // ── Post reply ──
+        async function postReply(commentId) {
+            if (!requireAuth()) return
+            const text = document.getElementById(`replytext-${commentId}`)?.value.trim()
+            if (!text) return
+
+            try {
+                const res = await fetch(`${API}/comments/problem/${problem._id}/reply`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
+                    body: JSON.stringify({ content: text, replyTo: commentId })
+                })
+                const data = await res.json()
+                if (!data.success) { showToast(data.message, 'error'); return }
+
+                const me = JSON.parse(localStorage.getItem('user'))
+                document.getElementById(`replies-${commentId}`)
+                    .insertAdjacentHTML('beforeend', renderReply(data.data, me))
+
+                document.getElementById(`replytext-${commentId}`).value = ''
+                toggleReplyBox(commentId)
+                showToast('Reply posted', 'success')
+            } catch (e) {
+                showToast('Could not post reply', 'error')
+            }
+        }
+
+        // ── Upvote ──
+        async function upvoteComment(commentId, btn) {
+            if (!requireAuth()) return
+            try {
+                const res = await fetch(`${API}/comments/${commentId}/upvote`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                })
+                const data = await res.json()
+                if (!data.success) return
+
+                btn.querySelector('.upvote-count').textContent = data.upvotes
+                btn.classList.toggle('upvoted', data.upvoted)
+            } catch (e) { }
+        }
+
+        // ── Delete comment ──
+        async function deleteComment(commentId) {
+            if (!confirm('Delete this comment?')) return
+            try {
+                const res = await fetch(`${API}/comments/${commentId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                })
+                const data = await res.json()
+                if (data.success) {
+                    const el = document.getElementById(`comment-${commentId}`)
+                    if (el) el.remove()
+                    showToast('Comment deleted', 'info')
+                }
+            } catch (e) { }
+        }
+
+        // ── Time ago ──
+        function formatTimeAgo(dateStr) {
+            const diff = Date.now() - new Date(dateStr).getTime()
+            const mins = Math.floor(diff / 60000)
+            const hours = Math.floor(diff / 3600000)
+            const days = Math.floor(diff / 86400000)
+            if (mins < 1) return 'just now'
+            if (mins < 60) return `${mins}m ago`
+            if (hours < 24) return `${hours}h ago`
+            return `${days}d ago`
+        }
     </script>
+
 </body>
 
 </html>

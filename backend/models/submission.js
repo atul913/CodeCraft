@@ -25,7 +25,10 @@ const submissionSchema = new Schema({
 
   executionDetails: [{
     testCaseId: { type: String },
-    status:     { type: String }
+    status:     { type: String },
+    runtimeMs:  { type: Number, default: 0 },
+    output:     { type: String, default: '' },  
+    expected:   { type: String, default: '' }   
   }],
 
   submittedAt: { type: Date, default: Date.now }

@@ -1,0 +1,290 @@
+/* ================================================================
+   TOP NAV  (.topnav)
+   Used by: problems-list.html, problem-solve.html, admin/problems.html
+   ================================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cuprum:ital,wght@0,400..700;1,400..700&family=Google+Sans+Flex:opsz,wght@6..144,1..1000&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+
+.nav-btn {
+    background: none;
+    border: none;
+    color: var(--color-link);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+}
+
+
+
+.topnav {
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+    padding: 0 var(--nav-padding-x);
+    height: var(--nav-height);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+}
+
+.topnav-brand {
+    font-family: var(--font-navbar);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text);
+    text-decoration: none;
+}
+
+.topnav-links a,
+.topnav a {
+    color: var(--color-link);
+    text-decoration: none;
+    font-size: var(--font-size-sm);
+    margin-left: 20px;
+}
+
+.topnav-links a:hover,
+.topnav a:hover {
+    text-decoration: underline;
+}
+
+.topnav-links a.active {
+    color: var(--color-text);
+    font-weight: var(--font-weight-bold);
+    text-decoration: none;
+}
+
+/* ================================================================
+   TOP BAR  (.topbar)
+   Used by: admin/problem-form.html, admin/problems.html
+   ================================================================ */
+.topbar {
+    background: var(--color-surface);
+    padding: 0 15px;
+    height: var(--nav-height);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.topbar-brand {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text);
+    text-decoration: none;
+    text-transform: uppercase;
+}
+
+.topbar-title {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-dim);
+}
+
+.topbar a {
+    color: var(--color-link);
+    text-decoration: none;
+    font-size: var(--font-size-sm);
+    margin-left: 20px;
+    font-weight: var(--font-weight-bold);
+}
+
+.topbar a:hover {
+    text-decoration: underline;
+}
+
+/* ================================================================
+   PUBLIC HEADER  (header / .top-meta / .brand-section / .nav-tabs)
+   Used by: login.html / public-facing pages
+   ================================================================ */
+header {
+    background-color: var(--color-surface);
+    border-bottom: 1px solid var(--color-border-light);
+    padding-bottom: 10px;
+}
+
+.top-meta {
+    display: flex;
+    justify-content: space-between;
+    margin-right: 12px;
+    margin-left: auto;
+    padding: 8px 12px;
+    font-size: var(--font-size-xs);
+    color: var(--color-text-dim);
+    border-bottom: 1px solid var(--color-border-light);
+}
+
+.sponsor-badge {
+    font-weight: var(--font-weight-bold);
+    color: var(--color-primary-indigo-dark);
+    background-color: var(--color-primary-light);
+    border: 1px solid var(--color-border-light);
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+    text-transform: uppercase;
+    font-size: var(--font-size-xxs);
+}
+
+.lang-login-panel {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.flags {
+    display: flex;
+    gap: 5px;
+    border-right: 1px solid var(--color-border-dark);
+    padding-right: 10px;
+}
+
+.flag-btn {
+    background: none;
+    border: 1px solid transparent;
+    font-size: 15px;
+    padding: 1px 3px;
+    border-radius: var(--radius-xs);
+}
+
+.flag-btn.active {
+    border-color: var(--color-border-dark);
+    background-color: var(--color-bg-active);
+}
+
+.brand-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 20px 12px;
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--font-heading);
+}
+
+.logo-icon-isometric {
+    position: relative;
+    width: 24px;
+    height: 24px;
+    background: var(--color-primary-indigo);
+    border-radius: var(--radius-lg);
+    transform: rotate(-15deg);
+}
+
+.logo-text-modern {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-extrabold);
+    letter-spacing: -0.5px;
+    color: var(--color-text-slate);
+}
+
+.logo-text-modern .highlight {
+    color: var(--color-primary-indigo);
+    position: relative;
+}
+
+/* ── Public Nav Tabs ── */
+.nav-tabs {
+    font-family: var(--font-navbar);
+    border: 1px solid var(--color-border-dark);
+    border-radius: var(--radius-md);
+    padding: 10px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.tabs-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+}
+
+.tab-item {
+    font-family: var(--font-navbar);
+    padding: 5px 10px 4px 10px;
+    /* Adjust padding slightly to account for the border */
+    font-weight: var(--font-weight-medium);
+    font-size: var(--font-size-md);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    border-bottom: 2px solid transparent;
+    transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
+}
+
+.tab-item:hover {
+    background-color: var(--color-bg-hover);
+    color: var(--color-text-dark);
+}
+
+.tab-item.active {
+    color: var(--color-primary-indigo);
+    border-bottom: 2px solid var(--color-primary-indigo);
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    font-weight: var(--font-weight-bold);
+}
+
+/* ── Sub Bar (solve page) ── */
+.subbar {
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border-mid);
+    padding: 8px var(--nav-padding-x);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.subbar-title {
+    font-weight: var(--font-weight-bold);
+    font-size: var(--font-size-md);
+    color: var(--color-text);
+}
+
+/* ── Shared: Difficulty Badges ── */
+.badge {
+    display: inline-block;
+    padding: 3px 8px;
+    font-size: 10.5px;
+    font-weight: 500;
+    border-radius: var(--radius-sm);
+    text-transform: uppercase;
+}
+
+.badge-easy {
+    background: var(--color-success-bg);
+    color: var(--color-success-text);
+}
+
+.badge-medium {
+    background: var(--color-warning-bg);
+    color: var(--color-warning-text);
+}
+
+.badge-hard {
+    background: var(--color-danger-bg);
+    color: var(--color-danger-text);
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+    .top-meta {
+        font-size: 10px;
+    }
+
+    .brand-section {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .nav-tabs {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+}

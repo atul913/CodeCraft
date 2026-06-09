@@ -1,0 +1,411 @@
+/* ── Ratings Page ── */
+
+
+.rl-page-header {
+    border-bottom: 2px solid var(--color-brand-facebook);
+    padding: 18px 0 14px;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.rl-page-title {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-dark);
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+
+.rl-page-subtitle {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-light);
+    margin-top: 3px;
+}
+
+/* ── Tab Switcher ── */
+.rl-tabs {
+    display: flex;
+    border-bottom: 2px solid var(--color-border);
+    margin-bottom: 18px;
+    gap: 0;
+}
+
+.rl-tab {
+    font-family: var(--sans);
+    padding: 9px 22px;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--color-text-light);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    background: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    transition: color .15s, border-color .15s;
+    white-space: nowrap;
+}
+
+.rl-tab:hover {
+    color: var(--color-brand-facebook);
+}
+
+.rl-tab.active {
+    color: var(--color-brand-facebook);
+    border-bottom-color: var(--color-brand-facebook);
+}
+
+/* ── Controls Bar ── */
+.rl-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+}
+
+.rl-search-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 180px;
+    max-width: 260px;
+}
+
+.rl-search-wrap svg {
+    position: absolute;
+    left: 9px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-text-placeholder);
+    pointer-events: none;
+}
+
+.rl-search {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 7px 10px 7px 30px;
+    font-size: var(--font-size-sm);
+    border: 1px solid var(--color-border-dark);
+    border-radius: var(--radius-xs);
+    font-family: inherit;
+    background: var(--color-surface);
+}
+
+.rl-search:focus {
+    outline: none;
+    border-color: var(--color-brand-facebook);
+}
+
+.rl-country-select {
+    padding: 7px 10px;
+    font-size: var(--font-size-sm);
+    border: 1px solid var(--color-border-dark);
+    border-radius: var(--radius-xs);
+    font-family: inherit;
+    background: var(--color-surface);
+    min-width: 160px;
+    cursor: pointer;
+}
+
+.rl-country-select:focus {
+    outline: none;
+    border-color: var(--color-brand-facebook);
+}
+
+.rl-count {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-light);
+    margin-left: auto;
+    white-space: nowrap;
+}
+
+/* ── Table ── */
+.rl-table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+}
+
+.rl-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-size-xs);
+}
+
+.rl-table thead th {
+    text-align: left;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    color: var(--text-tertiary);
+    padding: 12px;
+    border-bottom: 1px solid var(--border-mid);
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+    background: var(--surface-alt);
+}
+
+.rl-table thead th:hover {
+    color: var(--indigo);
+}
+
+.rl-table thead th.sorted-asc::after {
+    content: ' ↑';
+    color: var(--indigo);
+}
+
+.rl-table thead th.sorted-desc::after {
+    content: ' ↓';
+    color: var(--indigo);
+}
+
+.rl-table thead th.no-sort {
+    cursor: default;
+}
+
+.rl-table thead th.no-sort:hover {
+    color: var(--text-tertiary);
+}
+
+.rl-table tbody tr {
+    transition: background .1s;
+}
+
+.rl-table tbody tr:hover {
+    background: var(--indigo-dim);
+}
+
+.rl-table tbody tr.is-self {
+    background: var(--color-warning-alt-bg);
+}
+
+.rl-table tbody tr.is-self:hover {
+    background: var(--color-warning-bg);
+}
+
+.rl-table td {
+    padding: 12px;
+    color: var(--text-secondary);
+    vertical-align: middle;
+    border-bottom: 1px solid var(--border);
+}
+
+/* ── Rank Cell ── */
+.rank-cell {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-dark);
+    width: 48px;
+    text-align: right;
+    padding-right: 12px !important;
+}
+
+/* ── User Cell ── */
+.user-cell {
+    font-size: var(--font-size-xs);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.user-flag {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+}
+
+.user-flag .fi {
+    width: 18px;
+    height: 14px;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: var(--radius-xs);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.user-link {
+    font-weight: var(--font-weight-semibold);
+    text-decoration: none;
+    font-size: var(--font-size-sm);
+}
+
+.user-link:hover {
+    text-decoration: underline;
+}
+
+/* ── Right Alignment for Numbers ── */
+.rl-table th.col-num,
+.rl-table td.col-num {
+    text-align: right;
+    padding-right: 24px;
+}
+
+/* ── Rating Cell ── */
+.rating-val {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    font-variant-numeric: tabular-nums;
+}
+
+.rating-unrated {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-placeholder);
+    font-style: italic;
+}
+
+.rating-delta-pos {
+    font-size: var(--font-size-xs);
+    color: var(--color-success-alt);
+}
+
+.rating-delta-neg {
+    font-size: var(--font-size-xs);
+    color: var(--color-danger-alt);
+}
+
+/* ── Tier Badge ── */
+.tier-badge {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-bold);
+    padding: 2px 7px;
+    border-radius: var(--radius-xs);
+    white-space: nowrap;
+    display: inline-block;
+}
+
+/* ── Contests / Solved cells ── */
+.cell-num {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-normal);
+    color: var(--color-text);
+    font-variant-numeric: tabular-nums;
+}
+
+.cell-muted {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-placeholder);
+}
+
+/* ── Pagination ── */
+.rl-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    margin-top: 20px;
+    padding: 10px 0;
+}
+
+.pg-btn {
+    padding: 5px 11px;
+    font-size: var(--font-size-sm);
+    border: 1px solid var(--color-border-mid);
+    background: var(--color-surface);
+    cursor: pointer;
+    color: var(--color-text-secondary);
+    min-width: 32px;
+    text-align: center;
+}
+
+.pg-btn:hover {
+    border-color: var(--color-brand-facebook);
+    color: var(--color-brand-facebook);
+}
+
+.pg-btn.active {
+    background: var(--color-brand-facebook);
+    color: var(--color-surface);
+    border-color: var(--color-brand-facebook);
+    font-weight: var(--font-weight-bold);
+}
+
+.pg-btn:disabled {
+    opacity: .4;
+    cursor: default;
+}
+
+.pg-ellipsis {
+    padding: 5px 4px;
+    color: var(--color-text-placeholder);
+    font-size: var(--font-size-sm);
+}
+
+/* ── Empty / Loading ── */
+.rl-loading {
+    text-align: center;
+    color: var(--color-text-placeholder);
+    padding: 60px 0;
+    font-size: var(--font-size-sm);
+}
+
+.rl-empty {
+    text-align: center;
+    color: var(--color-text-placeholder);
+    padding: 40px 0;
+    font-size: var(--font-size-sm);
+    font-style: italic;
+}
+
+/* ── You badge ── */
+.you-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 500;
+    background: var(--color-brand-facebook);
+    color: var(--color-surface);
+    padding: 1px 5px;
+    border-radius: var(--radius-xs);
+    margin-left: 6px;
+    vertical-align: middle;
+    letter-spacing: .12em;
+}
+
+/* ── Stat summary cards at top ── */
+.rl-stat-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+.rl-stat-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-light);
+    padding: 12px 14px;
+    text-align: center;
+}
+
+.rl-stat-num {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-dark);
+}
+
+.rl-stat-lbl {
+    font-size: var(--font-size-xxs);
+    color: var(--color-text-placeholder);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-top: 2px;
+}
+
+@media (max-width: 700px) {
+    .rl-stat-strip {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .rl-tab {
+        padding: 8px 12px;
+        font-size: 11px;
+    }
+}

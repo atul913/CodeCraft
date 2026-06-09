@@ -1,38 +1,135 @@
-<header>
-    <!-- Platform Brand Slogan Banner -->
-    <div class="container brand-section">
-        <div class="logo-container">
-            <div class="logo-icon-isometric">
-                <span class="cube-face top"></span>
-                <span class="cube-face left"></span>
-                <span class="cube-face right"></span>
-            </div>
-            <div>
-                <div class="logo-text-modern">CODE<span class="highlight">CRAFT</span></div>
+<header
+    style="position: sticky; top: 0; z-index: 1000; background: rgba(252, 252, 252, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid var(--color-border); height: 64px; display: flex; align-items: center; width: 100%;">
+    <div class="container"
+        style="width: 100%; max-width: 1100px; margin: 0 auto; padding: 0 40px; display: flex; justify-content: space-between; align-items: center;">
+        <a href="/" class="logo"
+            style="font-family: var(--font-serif); font-size: 28px; font-style: italic; color: var(--color-text); text-decoration: none;">CodeCraft</a>
+
+        <nav class="nav-links" style="display: flex; gap: 32px; align-items: center;">
+            <a href="/" class="tab-link" data-tab="home"
+                style="font-size: 15px; color: var(--color-text-muted); text-decoration: none; font-weight: 400; transition: var(--transition);">Explore</a>
+            <a href="/problems" class="tab-link" data-tab="problems"
+                style="font-size: 15px; color: var(--color-text-muted); text-decoration: none; font-weight: 400; transition: var(--transition);">Problems</a>
+            <a href="/ratings" class="tab-link" data-tab="ratings"
+                style="font-size: 15px; color: var(--color-text-muted); text-decoration: none; font-weight: 400; transition: var(--transition);">Ratings</a>
+            <a href="/#editor" class="tab-link" data-tab="sandbox"
+                style="font-size: 15px; color: var(--color-text-muted); text-decoration: none; font-weight: 400; transition: var(--transition);">Sandbox</a>
+        </nav>
+
+        <div class="lang-login-panel" style="display: flex; align-items: center; gap: 16px;">
+            <div id="auth-section">
+                <a href="/login" class="btn"
+                    style="color: var(--color-primary); font-family: var(--font-main); font-size: 15px; font-weight: 400; text-decoration: none; transition: var(--transition); background: transparent; cursor: pointer; border: none; padding: 8px 0; display: inline-block;">Sign
+                    In</a>
+                <span style="color: var(--color-border); margin: 0 8px;">|</span>
+                <a href="/register" class="btn-outline"
+                    style="border: 1px solid var(--color-border); border-radius: 6px; padding: 8px 16px; color: var(--color-text); font-family: var(--font-main); font-size: 14px; font-weight: 400; text-decoration: none; transition: var(--transition); background: transparent; display: inline-block; cursor: pointer;">Register</a>
             </div>
         </div>
-    </div>
+        <script>
+            function switchNavTab(btnName) {
+                // Keep signature for compatibility
+            }
 
-    <!-- Tabbed Horizontal Navigation Matrix -->
-    <div class="container">
-        <nav class="nav-tabs">
-            <div class="tabs-wrapper">
-                <span class="tab-item" onclick="window.location.href='/'">HOME</span>
-                <span class="tab-item">CONTESTS</span>
-                <span class="tab-item" onclick="window.location.href='/problems'">PROBLEM</span>
-                <span class="tab-item">RATING</span>
-                <span class="tab-item">HELP</span>
-            </div>
+            function renderAuthSection() {
+                const authSection = document.getElementById('auth-section');
+                const token = localStorage.getItem('token');
+                const userData = localStorage.getItem('user');
 
-            <div class="container top-meta">
-                <div class="lang-login-panel">
-                    <div>
-                        <a href="/login">Enter</a>
-                        <span style="color:#ddd; margin:0 5px;">|</span>
-                        <a href="/register" style="font-weight: bold; color: #333;">Register</a>
+                if (!token || !userData) return;
+
+                const user = JSON.parse(userData);
+
+                authSection.innerHTML = `
+                    <div style="display:flex;align-items:center;gap:16px;">
+                        <a href="/profile/${user.username}" class="btn" style="font-weight: 500; color: var(--color-primary); text-decoration: none; font-size: 15px;">
+                            ${user.username}
+                        </a>
+                        <span style="color: var(--color-border);">|</span>
+                        <a class="btn-outline" onclick="logout()" style="border: 1px solid var(--color-border); border-radius: 6px; padding: 8px 16px; cursor: pointer; color: var(--color-text); text-decoration: none; font-size: 14px; background: transparent; transition: var(--transition);">
+                            Logout
+                        </a>
                     </div>
-                </div>
-            </div>
-        </nav>
+                `;
+            }
+
+            async function logout() {
+                const refreshToken = localStorage.getItem('refreshToken');
+                const apiBase = (typeof API !== 'undefined') ? API : '/api';
+
+                if (refreshToken) {
+                    try {
+                        await fetch(`${apiBase}/auth/logout`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ refreshToken })
+                        });
+                    } catch (e) {
+                        console.error('Revoke refresh token failed: ', e);
+                    }
+                }
+
+                showToast('Logged out successfully', 'success');
+
+                localStorage.removeItem('token');
+                localStorage.removeItem('refreshToken');
+                localStorage.removeItem('user');
+                setTimeout(() => {
+                    window.location.href = '/login';
+                }, 1500);
+            }
+
+            document.addEventListener('DOMContentLoaded', () => {
+                renderAuthSection();
+
+                // Highlight active tab
+                const currentPath = window.location.pathname;
+                const tabLinks = document.querySelectorAll('.tab-link');
+                tabLinks.forEach(link => {
+                    const tab = link.getAttribute('data-tab');
+                    if ((tab === 'home' && currentPath === '/') ||
+                        (tab === 'problems' && currentPath.startsWith('/problems')) ||
+                        (tab === 'ratings' && currentPath.startsWith('/ratings'))) {
+                        link.style.color = 'var(--color-text)';
+                    }
+                });
+            });
+
+            function showToast(msg, type = 'info') {
+                const existing = document.getElementById('globalToast')
+                if (existing) existing.remove()
+
+                const colors = {
+                    info: { bg: '#1c1c1a', border: '#71716a' },
+                    success: { bg: '#059669', border: '#34d399' },
+                    warning: { bg: '#d97706', border: '#fbbf24' },
+                    error: { bg: '#dc2626', border: '#f87171' }
+                }
+                const c = colors[type] || colors.info
+
+                const toast = document.createElement('div')
+                toast.id = 'globalToast'
+                toast.style.cssText = `
+                    position: fixed; top: 32px; z-index: 9999; left: 50%; transform: translateX(-50%);
+                    background: ${c.bg}; color: #fff;
+                    border-left: 4px solid ${c.border};
+                    padding: 12px 18px; font-size: 13px;
+                    font-family: var(--font-base);
+                    box-shadow: 0 4px 12px rgba(0,0,0,.15);
+                    border-radius: 4px;
+                    max-width: 320px; line-height: 1.5;
+                    opacity: 0; transition: opacity .2s;
+                `
+                toast.textContent = msg
+                document.body.appendChild(toast)
+
+                requestAnimationFrame(() => { toast.style.opacity = '1' })
+
+                setTimeout(() => {
+                    toast.style.opacity = '0'
+                    setTimeout(() => toast.remove(), 300)
+                }, type === 'warning' ? 1200 : 3000)
+            }
+        </script>
     </div>
 </header>

@@ -2,10 +2,77 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Problems — CodeCraft</title>
-    <link rel="stylesheet" href="../assets/css/auth.css">
-</head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        <%= pageTitle %>
+    </title>
+    <link rel="stylesheet" href="/css/navbar.css">
+    <link rel="stylesheet" href="/css/base.css">
+    <link rel="stylesheet" href="/css/main.css">
+    <script>
+        // Global fetch interceptor for handling automatic JWT token refreshes
+        (function () {
+            const originalFetch = window.fetch;
+            window.fetch = async function (url, options) {
+                let response = await originalFetch(url, options);
 
-<body>
+                // If request returns 401 and refresh token exists
+                if (response.status === 401 && localStorage.getItem('refreshToken')) {
+                    const urlStr = typeof url === 'string' ? url : (url.url || '');
+                    if (urlStr.includes('/api/auth/refresh')) {
+                        return response;
+                    }
+
+                    try {
+                        const apiBase = (typeof API !== 'undefined') ? API : '/api';
+                        const refreshRes = await originalFetch(`${apiBase}/auth/refresh`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                refreshToken: localStorage.getItem('refreshToken')
+                            })
+                        });
+
+                        const refreshData = await refreshRes.json();
+                        if (refreshData.success && refreshData.token) {
+                            localStorage.setItem('token', refreshData.token);
+                            if (refreshData.refreshToken) {
+                                localStorage.setItem('refreshToken', refreshData.refreshToken);
+                            }
+
+                            // Re-apply headers with new access token
+                            if (options) {
+                                if (!options.headers) {
+                                    options.headers = {};
+                                }
+                                if (options.headers instanceof Headers) {
+                                    options.headers.set('Authorization', `Bearer ${refreshData.token}`);
+                                } else {
+                                    options.headers['Authorization'] = `Bearer ${refreshData.token}`;
+                                }
+                            }
+
+                            // Retry original request
+                            return await originalFetch(url, options);
+                        } else {
+                            // Revoked/expired session: log out user
+                            localStorage.removeItem('token');
+                            localStorage.removeItem('refreshToken');
+                            localStorage.removeItem('user');
+
+                            // Redirect if currently visiting protected views
+                            if (window.location.pathname.startsWith('/profile') || window.location.pathname.startsWith('/admin')) {
+                                window.location.href = '/login';
+                            }
+                        }
+                    } catch (e) {
+                        console.error('Fetch interceptor refresh token error:', e);
+                    }
+                }
+                return response;
+            };
+        })();
+    </script>

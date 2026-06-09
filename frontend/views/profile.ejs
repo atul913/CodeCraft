@@ -1,0 +1,795 @@
+<%- include('partials/base') %>
+    <link rel="stylesheet" href="/css/profile.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/7.2.3/css/flag-icons.min.css" />
+    <script src="/js/countryflag.js"></script>
+    </head>
+
+    <body>
+
+        <%- include('partials/navbar') %>
+
+            <div class="container">
+                <div id="pf-alerts"></div>
+
+                <div class="loading-spinner" id="pf-loading">Loading profile…</div>
+
+                <div class="pf-wrap" id="pf-wrap" style="display:none;">
+
+                    <!-- ══════ SIDEBAR ══════ -->
+                    <aside class="pf-sidebar">
+
+                        <!-- Identity Card -->
+                        <div class="pf-card">
+                            <div id="pf-avatar-wrap"></div>
+                            <div class="pf-username" id="pf-username"></div>
+                            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px;">
+                                <span class="pf-role-badge" id="pf-role"></span>
+                                <span id="pf-tier-badge"
+                                    style="font-size:12px;font-weight:500; letter-spacing: 0.12em;"></span>
+                            </div>
+                            <div class="pf-fullname" id="pf-fullname"></div>
+                            <div class="pf-bio" id="pf-bio"></div>
+
+                            <div class="pf-meta" id="pf-meta"></div>
+                            <div class="pf-socials" id="pf-socials"></div>
+
+                        </div>
+
+                        <!-- Ratings Card -->
+                        <div class="pf-card">
+                            <div class="pf-card-title">Ratings</div>
+                            <div id="pf-tier-banner"></div>
+                            <div class="rating-trio">
+                                <div class="rating-mini">
+                                    <div class="rating-mini-num" id="r-contest">—</div>
+                                    <div class="rating-mini-lbl">Contest</div>
+                                </div>
+                                <div class="rating-mini">
+                                    <div class="rating-mini-num" id="r-problem">—</div>
+                                    <div class="rating-mini-lbl">Problem</div>
+                                </div>
+                                <div class="rating-mini">
+                                    <div class="rating-mini-num" id="r-global">—</div>
+                                    <div class="rating-mini-lbl">Global</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Member Info -->
+                        <div class="pf-card" id="pf-member-card">
+                            <div class="pf-card-title">Account Info</div>
+                            <div class="pf-card-trio">
+                                <div>Member since <br><strong id="pf-joined"></strong></div>
+                                <div>Last seen <br><strong id="pf-visited"></strong></div>
+                                <div id="pf-email-row" style="display:none;">Email<br><strong id="pf-email"></strong>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn-edit-profile" id="pf-edit-btn" style="display:none;"
+                            onclick="openEditModal()">Edit Profile</button>
+
+                    </aside>
+
+                    <!-- ══════ MAIN CONTENT ══════ -->
+                    <main class="pf-main">
+
+                        <!-- Problems Solved Stats -->
+                        <div class="pf-card">
+                            <div class="pf-card-title">Performance Summary</div>
+                            <div class="stats-donut-wrap">
+                                <svg class="donut-svg" width="110" height="110" viewBox="0 0 110 110">
+                                    <circle cx="55" cy="55" r="44" fill="none" stroke="#eee" stroke-width="10" />
+                                    <circle cx="55" cy="55" r="44" fill="none" stroke="#00af9b" stroke-width="10"
+                                        stroke-dasharray="276.46" stroke-dashoffset="276.46" stroke-linecap="butt"
+                                        transform="rotate(-90 55 55)" id="donut-arc" />
+                                    <text x="55" y="50" class="donut-center donut-num" id="s-solved-num">0</text>
+                                    <text x="55" y="63" class="donut-center donut-lbl">SOLVED</text>
+                                </svg>
+
+                                <div class="diff-bars">
+                                    <div class="diff-row">
+                                        <div class="diff-row-header">
+                                            <span class="lbl-easy">Easy</span>
+                                            <span id="s-easy-count" style="font-size:11px;color:#555;">0/0</span>
+                                        </div>
+                                        <div class="diff-track">
+                                            <div class="diff-fill fill-easy" id="s-easy-fill" style="width:0%"></div>
+                                        </div>
+                                    </div>
+                                    <div class="diff-row">
+                                        <div class="diff-row-header">
+                                            <span class="lbl-medium">Medium</span>
+                                            <span id="s-medium-count" style="font-size:11px;color:#555;">0/0</span>
+                                        </div>
+                                        <div class="diff-track">
+                                            <div class="diff-fill fill-medium" id="s-medium-fill" style="width:0%">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="diff-row">
+                                        <div class="diff-row-header">
+                                            <span class="lbl-hard">Hard</span>
+                                            <span id="s-hard-count" style="font-size:11px;color:#555;">0/0</span>
+                                        </div>
+                                        <div class="diff-track">
+                                            <div class="diff-fill fill-hard" id="s-hard-fill" style="width:0%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="stat-grid-4" style="margin-top:14px;">
+                                <div class="stat-mini">
+                                    <div class="stat-mini-lbl">Streak : </div>
+                                    <div class="stat-mini-num" id="s-streak">0</div>
+                                </div>
+                                <div class="stat-mini">
+                                    <div class="stat-mini-lbl">Max Streak : </div>
+                                    <div class="stat-mini-num" id="s-max-streak">0</div>
+                                </div>
+                                <div class="stat-mini">
+                                    <div class="stat-mini-lbl">Submissions : </div>
+                                    <div class="stat-mini-num" id="s-submissions">0</div>
+                                </div>
+                                <div class="stat-mini">
+                                    <div class="stat-mini-lbl">AC Rate : </div>
+                                    <div class="stat-mini-num" id="s-ac-rate">0%</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Activity Heatmap -->
+                        <div class="pf-card">
+                            <div class="pf-card-title" style="margin-bottom:8px;">
+                                Activity
+                                <span id="act-summary-top"
+                                    style="font-weight:400;font-size:10px;color:#aaa;float:right;"></span>
+                            </div>
+                            <div class="activity-map">
+                                <div class="act-month-labels" id="act-month-labels"></div>
+                                <div class="act-grid" id="act-grid"></div>
+                            </div>
+                            <div class="act-summary">
+                                <span id="act-total-days"></span>
+                                <div class="act-legend">
+                                    Less
+                                    <div class="act-legend-cell act-0"></div>
+                                    <div class="act-legend-cell act-1"></div>
+                                    <div class="act-legend-cell act-2"></div>
+                                    <div class="act-legend-cell act-3"></div>
+                                    <div class="act-legend-cell act-4"></div>
+                                    More
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Contest Rating Graph -->
+                        <div class="pf-card">
+                            <div class="pf-card-title">Contest Rating History</div>
+                            <div class="rating-chart-wrap">
+                                <canvas id="ratingChart"></canvas>
+                                <div id="chart-no-data" class="chart-no-data" style="display:none;">
+                                    No contest history yet. Participate in a rated contest to start your rating journey!
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Contest History Table -->
+                        <div class="pf-card">
+                            <div class="pf-card-title">Contest Participation</div>
+                            <div id="contest-history-wrap">
+                                <table class="contest-table" id="contest-table" style="display:none;">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Contest</th>
+                                            <th>Rank</th>
+                                            <th>Score</th>
+                                            <th>Rating</th>
+                                            <th>Δ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="contest-tbody"></tbody>
+                                </table>
+                                <div class="empty-note" id="contest-empty">No rated contests participated yet.</div>
+                            </div>
+                        </div>
+
+                        <!-- Topic Tag Stats -->
+                        <div class="pf-card">
+                            <div class="pf-card-title">Topics Mastered</div>
+                            <div class="tag-grid" id="tag-grid">
+                                <span class="empty-note">No topic data yet.</span>
+                            </div>
+                        </div>
+
+                        <!-- Solved Problems -->
+                        <div class="pf-card">
+                            <div class="pf-card-title">Solved Problems</div>
+                            <div class="solved-list" id="solved-list">
+                                <span class="empty-note">No problems solved yet.</span>
+                            </div>
+                        </div>
+
+                    </main>
+                </div>
+            </div>
+
+            <!-- ══════ EDIT PROFILE MODAL ══════ -->
+            <div class="modal-overlay" id="editModal">
+                <div class="modal">
+                    <div class="modal-header">
+                        Edit Profile
+                        <button class="modal-close-btn" onclick="closeEditModal()">×</button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="modal-alerts"></div>
+
+                        <div class="modal-grid">
+                            <!-- Left Column: Basic Details -->
+                            <div class="modal-col-left">
+                                <div class="mfg">
+                                    <label>Full Name</label>
+                                    <input type="text" id="e-name" placeholder="e.g. John Doe" />
+                                </div>
+                                <div class="mfg">
+                                    <label>Bio / Status</label>
+                                    <textarea id="e-bio" placeholder="Tell the community about yourself…"></textarea>
+                                </div>
+                                <div class="mfg">
+                                    <label>Avatar Image URL</label>
+                                    <input type="url" id="e-avatar" placeholder="https://…/avatar.jpg" />
+                                </div>
+                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                                    <div class="mfg">
+                                        <label>Country</label>
+                                        <select id="e-country">
+                                            <option value="">Select Country</option>
+                                        </select>
+                                    </div>
+                                    <div class="mfg">
+                                        <label>Organization / University</label>
+                                        <input type="text" id="e-org" placeholder="e.g. IIT Delhi" />
+                                    </div>
+                                </div>
+                                <div class="mfg">
+                                    <label>Personal Website</label>
+                                    <input type="url" id="e-website" placeholder="https://yoursite.com" />
+                                </div>
+                            </div>
+
+                            <!-- Right Column: Social Profiles -->
+                            <div class="modal-col-right">
+                                <div class="modal-section-hdr" style="margin-top: 0; padding-top: 0; border-top: none;">Social Profiles</div>
+                                <div class="mfg">
+                                    <label>GitHub</label>
+                                    <input type="text" id="e-github" placeholder="octocat" />
+                                </div>
+                                <div class="mfg">
+                                    <label>LinkedIn</label>
+                                    <input type="text" id="e-linkedin" placeholder="john-doe" />
+                                </div>
+                                <div class="mfg">
+                                    <label>Twitter / X</label>
+                                    <input type="text" id="e-twitter" placeholder="handle" />
+                                </div>
+                                <div class="mfg">
+                                    <label>Codeforces</label>
+                                    <input type="text" id="e-codeforces" placeholder="handle" />
+                                </div>
+                                <div class="mfg">
+                                    <label>LeetCode</label>
+                                    <input type="text" id="e-leetcode" placeholder="handle" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button class="btn-cancel-m" onclick="closeEditModal()">Cancel</button>
+                            <button class="btn-save-m" id="save-btn" onclick="submitEditProfile()">Save Changes</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chart.js -->
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+            <script>
+                const API = '/api';
+
+                function getToken() { return localStorage.getItem('token'); }
+                function getLocalUser() { const d = localStorage.getItem('user'); return d ? JSON.parse(d) : null; }
+
+                // Derive target username from URL: /profile/:username
+                const pathParts = window.location.pathname.split('/');
+                let targetUsername = (pathParts[2] || '').trim().toLowerCase();
+
+                if (!targetUsername) {
+                    const lu = getLocalUser();
+                    if (lu?.username) window.location.replace('/profile/' + lu.username);
+                    else window.location.replace('/login');
+                }
+
+                let profileData = null;
+
+                // ─────────────────────────── LOAD ──────────────────────────────
+                async function loadProfile() {
+                    const headers = {};
+                    const tok = getToken();
+                    if (tok) headers['Authorization'] = `Bearer ${tok}`;
+
+                    try {
+                        const [userRes, probRes] = await Promise.all([
+                            fetch(`${API}/users/${targetUsername}`, { headers }),
+                            fetch(`${API}/problems`)
+                        ]);
+                        const userResult = await userRes.json();
+                        if (!userResult.success) { showError(userResult.message || 'User not found.'); return; }
+
+                        profileData = userResult.data;
+
+                        let totEasy = 0, totMedium = 0, totHard = 0;
+                        try {
+                            const probData = await probRes.json();
+                            if (probData.success) {
+                                totEasy = probData.data.filter(p => p.difficulty === 'Easy').length;
+                                totMedium = probData.data.filter(p => p.difficulty === 'Medium').length;
+                                totHard = probData.data.filter(p => p.difficulty === 'Hard').length;
+                            }
+                        } catch (_) { }
+
+                        renderProfile(profileData, totEasy, totMedium, totHard);
+                    } catch (e) {
+                        showError('Could not reach the server.');
+                    }
+                }
+
+                function showError(msg) {
+                    document.getElementById('pf-loading').style.display = 'none';
+                    document.getElementById('pf-alerts').innerHTML =
+                        `<div class="alert-danger"><strong>Error:</strong> ${msg} &nbsp;
+             <a href="/" style="color:#3b5998;">← Home</a></div>`;
+                }
+
+                // ─────────────────────────── RENDER ────────────────────────────
+                function renderProfile(u, totEasy, totMedium, totHard) {
+                    document.getElementById('pf-loading').style.display = 'none';
+                    document.getElementById('pf-wrap').style.display = 'grid';
+                    document.title = `${u.username} — CodeCraft`;
+
+                    /* ── Avatar ── */
+                    const avatarWrap = document.getElementById('pf-avatar-wrap');
+                    if (u.profile.avatarUrl) {
+                        avatarWrap.innerHTML = `<img src="${u.profile.avatarUrl}" class="pf-avatar" alt="${u.username}"
+                onerror="this.parentNode.innerHTML='<div class=pf-avatar-ph>' + '${u.username}'.substring(0,2).toUpperCase() + '</div>'" />`;
+                    } else {
+                        avatarWrap.innerHTML = `<div class="pf-avatar-ph">${u.username.substring(0, 2).toUpperCase()}</div>`;
+                    }
+
+                    /* ── Basic ── */
+                    document.getElementById('pf-username').textContent = u.username;
+                    const roleBadge = document.getElementById('pf-role');
+                    roleBadge.className = `pf-role-badge role-${u.role}`;
+                    roleBadge.textContent = u.role;
+
+                    document.getElementById('pf-fullname').textContent = u.profile.name || '';
+                    document.getElementById('pf-bio').textContent = u.profile.bio || '';
+
+                    /* ── Tier Badge ── */
+                    const tier = u.tier || {};
+                    const tierColor = tier.colorHex || '#888';
+                    const tierEl = document.getElementById('pf-tier-badge');
+                    tierEl.textContent = tier.name || 'Unrated';
+                    tierEl.style.color = tierColor;
+
+                    /* ── Ratings Sidebar ── */
+                    const ratingData = u.rating || {};
+                    const isRated = ratingData.isRated;
+                    const contestR = isRated ? ratingData.contest : null;
+                    const peakR = isRated ? (ratingData.contestPeak || ratingData.contest) : null;
+
+                    document.getElementById('r-contest').textContent = isRated ? (ratingData.contest || 1500) : '?';
+                    document.getElementById('r-problem').textContent = ratingData.problem || 0;
+                    document.getElementById('r-global').textContent = ratingData.global || 0;
+
+                    const banner = document.getElementById('pf-tier-banner');
+                    if (isRated && contestR) {
+                        banner.style.setProperty('--tc', tierColor);
+                        banner.innerHTML = `
+                <div>
+                    <div class="pf-tier-name">${tier.name || 'Newbie'}</div>
+                    ${peakR ? `<div class="pf-tier-peak">Peak: ${peakR}</div>` : ''}
+                </div>
+                <div class="pf-tier-rating">${contestR}</div>`;
+                    } else {
+                        banner.innerHTML = `<span class="pf-tier-unrated">Unrated — participate in 2+ contests</span>`;
+                    }
+
+                    /* ── Meta Info ── */
+                    const metaEl = document.getElementById('pf-meta');
+                    let metaHTML = '';
+                    if (u.profile.country) {
+                        const flagHTML = (typeof COUNTRY_FLAGS !== 'undefined' && COUNTRY_FLAGS[u.profile.country]) ? COUNTRY_FLAGS[u.profile.country] : '🌍';
+                        metaHTML += metaRow(flagHTML, u.profile.country);
+                    }
+                    if (u.profile.organization) metaHTML += metaRow('🎓', u.profile.organization);
+                    if (u.profile.website) metaHTML += metaRow('🔗', `<a href="${u.profile.website}" target="_blank">${u.profile.website}</a>`);
+                    if (u.isOwnProfile && u.email) {
+                        document.getElementById('pf-email-row').style.display = 'block';
+                        document.getElementById('pf-email').textContent = u.email;
+                    }
+                    metaEl.innerHTML = metaHTML;
+
+                    /* ── Socials ── */
+                    const s = u.profile.socials || {};
+                    const socialsEl = document.getElementById('pf-socials');
+                    let socHTML = '';
+                    if (s.github) socHTML += socialBtn('https://github.com/' + s.github, githubSVG(), 'GitHub');
+                    if (s.linkedin) socHTML += socialBtn('https://linkedin.com/in/' + s.linkedin, linkedinSVG(), 'LinkedIn');
+                    if (s.twitter) socHTML += socialBtn('https://twitter.com/' + s.twitter, '𝕏', s.twitter);
+                    if (s.codeforces) socHTML += socialBtn('https://codeforces.com/profile/' + s.codeforces, 'CF', s.codeforces);
+                    if (s.leetcode) socHTML += socialBtn('https://leetcode.com/' + s.leetcode, 'LC', s.leetcode);
+                    socialsEl.innerHTML = socHTML || '<span style="font-size:11px;color:#aaa;font-style:italic;">No social profiles linked.</span>';
+
+                    /* ── Dates ── */
+                    document.getElementById('pf-joined').textContent = fmtDate(u.createdAt);
+                    document.getElementById('pf-visited').textContent = u.lastLoginAt ? fmtDateTime(u.lastLoginAt) : 'Never';
+
+                    /* ── Edit Button ── */
+                    if (u.isOwnProfile) document.getElementById('pf-edit-btn').style.display = 'block';
+
+                    /* ── Problems Stats ── */
+                    const st = u.stats || {};
+                    const solved = st.problemsSolved || 0;
+                    const totalProblems = totEasy + totMedium + totHard;
+                    const circumference = 2 * Math.PI * 44; // 276.46
+
+                    document.getElementById('s-solved-num').textContent = solved;
+                    const pct = totalProblems > 0 ? solved / totalProblems : 0;
+                    document.getElementById('donut-arc').style.strokeDashoffset = circumference * (1 - pct);
+
+                    const easySolved = st.easySolved || 0;
+                    const mediumSolved = st.mediumSolved || 0;
+                    const hardSolved = st.hardSolved || 0;
+
+                    document.getElementById('s-easy-count').textContent = `${easySolved}/${totEasy || '—'}`;
+                    document.getElementById('s-medium-count').textContent = `${mediumSolved}/${totMedium || '—'}`;
+                    document.getElementById('s-hard-count').textContent = `${hardSolved}/${totHard || '—'}`;
+                    document.getElementById('s-easy-fill').style.width = totEasy > 0 ? `${(easySolved / totEasy) * 100}%` : '0%';
+                    document.getElementById('s-medium-fill').style.width = totMedium > 0 ? `${(mediumSolved / totMedium) * 100}%` : '0%';
+                    document.getElementById('s-hard-fill').style.width = totHard > 0 ? `${(hardSolved / totHard) * 100}%` : '0%';
+
+                    document.getElementById('s-streak').textContent = st.streak || 0;
+                    document.getElementById('s-max-streak').textContent = st.maxStreak || 0;
+                    document.getElementById('s-submissions').textContent = st.submissionsCount || 0;
+                    const acRate = st.submissionsCount > 0
+                        ? Math.round((st.acceptedCount || solved) / st.submissionsCount * 100) + '%'
+                        : '—';
+                    document.getElementById('s-ac-rate').textContent = acRate;
+
+                    /* ── Activity Heatmap ── */
+                    renderActivityMap(st.activityMap || {}, st.totalActiveDays || 0, st.maxStreak || 0);
+
+                    /* ── Rating Chart ── */
+                    renderRatingChart(ratingData.history || []);
+
+                    /* ── Contest History Table ── */
+                    renderContestHistory(ratingData.history || []);
+
+                    /* ── Tag Stats ── */
+                    renderTagStats(st.tagStats || {});
+
+                    /* ── Solved Problems ── */
+                    renderSolvedProblems(u.solvedProblems || []);
+                }
+
+                // ─── Activity Heatmap ───────────────────────────────────────────
+                function renderActivityMap(actMap, totalActiveDays, maxStreak) {
+                    const today = new Date();
+                    const grid = document.getElementById('act-grid');
+                    const monthLbl = document.getElementById('act-month-labels');
+                    grid.innerHTML = '';
+
+                    // Build 52 weeks × 7 days grid
+                    const startDate = new Date(today);
+                    startDate.setDate(startDate.getDate() - 364);
+                    startDate.setDate(startDate.getDate() - startDate.getDay()); // align to Sunday
+
+                    const weeks = 53;
+                    const months = [];
+                    let lastMonth = -1;
+
+                    for (let w = 0; w < weeks; w++) {
+                        const col = document.createElement('div');
+                        col.className = 'act-col';
+
+                        for (let d = 0; d < 7; d++) {
+                            const date = new Date(startDate);
+                            date.setDate(startDate.getDate() + w * 7 + d);
+                            if (date > today) break;
+
+                            const key = date.toISOString().slice(0, 10);
+                            const count = actMap[key] || 0;
+                            const level = count === 0 ? 0 : count <= 2 ? 1 : count <= 5 ? 2 : count <= 9 ? 3 : 4;
+
+                            const cell = document.createElement('div');
+                            cell.className = `act-cell act-${level}`;
+                            cell.title = `${key}: ${count} submission${count !== 1 ? 's' : ''}`;
+                            col.appendChild(cell);
+
+                            if (d === 0) {
+                                const m = date.getMonth();
+                                if (m !== lastMonth) {
+                                    months.push({ label: date.toLocaleString('default', { month: 'short' }), week: w });
+                                    lastMonth = m;
+                                }
+                            }
+                        }
+                        grid.appendChild(col);
+                    }
+
+                    // Month labels
+                    monthLbl.innerHTML = '';
+                    months.forEach(({ label, week }, i) => {
+                        const next = months[i + 1];
+                        const span = document.createElement('div');
+                        span.textContent = label;
+                        span.style.cssText = `width:${(next ? next.week - week : 4) * 14}px; overflow:hidden; white-space:nowrap;`;
+                        monthLbl.appendChild(span);
+                    });
+
+                    document.getElementById('act-total-days').textContent =
+                        `${totalActiveDays} active days  ·  max streak ${maxStreak}`;
+                }
+
+                // ─── Rating Chart ───────────────────────────────────────────────
+                function renderRatingChart(history) {
+                    const canvas = document.getElementById('ratingChart');
+                    const noData = document.getElementById('chart-no-data');
+
+                    if (!history || history.length === 0) {
+                        canvas.style.display = 'none';
+                        noData.style.display = 'block';
+                        return;
+                    }
+
+                    const labels = history.map((h, i) => `Contest ${i + 1}`);
+                    const data = history.map(h => h.ratingAfter);
+
+                    new Chart(canvas, {
+                        type: 'line',
+                        data: {
+                            labels,
+                            datasets: [{
+                                data,
+                                borderColor: '#3b5998',
+                                backgroundColor: 'rgba(59,89,152,0.08)',
+                                borderWidth: 2,
+                                pointRadius: 4,
+                                pointBackgroundColor: data.map((v, i, arr) => {
+                                    if (i === 0) return '#3b5998';
+                                    return v > arr[i - 1] ? '#00af9b' : v < arr[i - 1] ? '#ef4743' : '#888';
+                                }),
+                                tension: 0.3,
+                                fill: true
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    callbacks: {
+                                        label: ctx => {
+                                            const h = history[ctx.dataIndex];
+                                            const delta = h.ratingDelta >= 0 ? `+${h.ratingDelta}` : h.ratingDelta;
+                                            return `Rating: ${h.ratingAfter} (${delta})`;
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+                                y: {
+                                    ticks: { font: { size: 10 } },
+                                    grid: { color: '#f0f0f0' }
+                                }
+                            }
+                        }
+                    });
+
+                    canvas.style.height = '180px';
+                }
+
+                // ─── Contest History Table ───────────────────────────────────────
+                function renderContestHistory(history) {
+                    const tbody = document.getElementById('contest-tbody');
+                    const table = document.getElementById('contest-table');
+                    const empty = document.getElementById('contest-empty');
+
+                    if (!history || history.length === 0) {
+                        table.style.display = 'none';
+                        empty.style.display = 'block';
+                        return;
+                    }
+
+                    table.style.display = 'table';
+                    empty.style.display = 'none';
+
+                    const rows = [...history].reverse();
+                    tbody.innerHTML = rows.map((h, i) => {
+                        const delta = h.ratingDelta;
+                        const deltaClass = delta > 0 ? 'delta-pos' : delta < 0 ? 'delta-neg' : 'delta-zero';
+                        const deltaText = delta > 0 ? `+${delta}` : delta;
+                        const contestName = h.contest?.title || `Contest #${history.length - i}`;
+                        return `
+                <tr>
+                    <td style="color:#999;">${history.length - i}</td>
+                    <td><a href="/contests/${h.contest?._id || ''}" style="color:#3b5998;">${contestName}</a></td>
+                    <td>${h.rank}</td>
+                    <td>${h.score}</td>
+                    <td>${h.ratingAfter}</td>
+                    <td class="${deltaClass}">${deltaText}</td>
+                </tr>`;
+                    }).join('');
+                }
+
+                // ─── Tag Stats ───────────────────────────────────────────────────
+                function renderTagStats(tagStats) {
+                    const container = document.getElementById('tag-grid');
+                    const entries = Object.entries(tagStats).sort((a, b) => b[1] - a[1]);
+                    if (entries.length === 0) {
+                        container.innerHTML = '<span class="empty-note">No topic data yet.</span>';
+                        return;
+                    }
+                    container.innerHTML = entries.slice(0, 20).map(([tag, count]) =>
+                        `<div class="tag-chip"><span>${tag}</span><span class="tag-chip-count">${count}</span></div>`
+                    ).join('');
+                }
+
+                // ─── Solved Problems ─────────────────────────────────────────────
+                function renderSolvedProblems(problems) {
+                    const container = document.getElementById('solved-list');
+                    if (!problems || problems.length === 0) {
+                        container.innerHTML = '<span class="empty-note">No problems solved yet. Start grinding!</span>';
+                        return;
+                    }
+                    container.innerHTML = problems.map(p =>
+                        `<a href="/problems/${p.slug}" class="solved-item">
+                <span>${p.title}</span>
+                <span class="badge-${(p.difficulty || '').toLowerCase()}">${p.difficulty}</span>
+             </a>`
+                    ).join('');
+                }
+
+                // ─────────────────────────── HELPERS ───────────────────────────
+                function metaRow(icon, text) {
+                    return `<div class="pf-meta-row"><span>${icon}</span><span>${text}</span></div>`;
+                }
+                function socialBtn(url, icon, label) {
+                    return `<a href="${url}" target="_blank" rel="noopener" class="pf-social-btn">${icon} ${label}</a>`;
+                }
+                function fmtDate(d) { return new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }); }
+                function fmtDateTime(d) { return new Date(d).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }); }
+
+                function githubSVG() {
+                    return `<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>`;
+                }
+                function linkedinSVG() {
+                    return `<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.779-1.75-1.75s.784-1.75 1.75-1.75 1.75.779 1.75 1.75-.784 1.75-1.75 1.75zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>`;
+                }
+
+                // ─────────────────────────── EDIT MODAL ────────────────────────
+                function openEditModal() {
+                    if (!profileData) return;
+                    const p = profileData.profile;
+                    const s = p.socials || {};
+                    document.getElementById('e-name').value = p.name || '';
+                    document.getElementById('e-bio').value = p.bio || '';
+                    document.getElementById('e-avatar').value = p.avatarUrl || '';
+                    document.getElementById('e-country').value = p.country || '';
+                    document.getElementById('e-org').value = p.organization || '';
+                    document.getElementById('e-website').value = p.website || '';
+                    document.getElementById('e-github').value = s.github || '';
+                    document.getElementById('e-linkedin').value = s.linkedin || '';
+                    document.getElementById('e-twitter').value = s.twitter || '';
+                    document.getElementById('e-codeforces').value = s.codeforces || '';
+                    document.getElementById('e-leetcode').value = s.leetcode || '';
+                    document.getElementById('modal-alerts').innerHTML = '';
+                    document.getElementById('editModal').classList.add('active');
+                }
+
+                function closeEditModal() {
+                    document.getElementById('editModal').classList.remove('active');
+                }
+
+                async function submitEditProfile() {
+                    const btn = document.getElementById('save-btn');
+                    btn.disabled = true; btn.textContent = 'Saving…';
+
+                    const payload = {
+                        name: document.getElementById('e-name').value.trim(),
+                        bio: document.getElementById('e-bio').value.trim(),
+                        avatarUrl: document.getElementById('e-avatar').value.trim(),
+                        country: document.getElementById('e-country').value.trim(),
+                        organization: document.getElementById('e-org').value.trim(),
+                        website: document.getElementById('e-website').value.trim(),
+                        socials: {
+                            github: document.getElementById('e-github').value.trim(),
+                            linkedin: document.getElementById('e-linkedin').value.trim(),
+                            twitter: document.getElementById('e-twitter').value.trim(),
+                            codeforces: document.getElementById('e-codeforces').value.trim(),
+                            leetcode: document.getElementById('e-leetcode').value.trim()
+                        }
+                    };
+
+                    try {
+                        const res = await fetch(`${API}/users/${targetUsername}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
+                            body: JSON.stringify(payload)
+                        });
+                        const data = await res.json();
+
+                        if (data.success) {
+                            document.getElementById('modal-alerts').innerHTML =
+                                '<div class="alert-success">Profile saved successfully!</div>';
+                            setTimeout(() => { closeEditModal(); loadProfile(); }, 1000);
+                        } else {
+                            document.getElementById('modal-alerts').innerHTML =
+                                `<div class="alert-danger">${data.message || 'Update failed.'}</div>`;
+                        }
+                    } catch (_) {
+                        document.getElementById('modal-alerts').innerHTML =
+                            '<div class="alert-danger">Server connection error.</div>';
+                    } finally {
+                        btn.disabled = false; btn.textContent = 'Save Changes';
+                    }
+                }
+
+                // Close modal on backdrop click disabled as per user request to only close on cancel button
+                // document.getElementById('editModal').addEventListener('click', function (e) {
+                //     if (e.target === this) closeEditModal();
+                // });
+
+                function populateCountryDropdown() {
+                    const select = document.getElementById('e-country');
+                    if (!select || typeof COUNTRY_FLAGS === 'undefined') return;
+
+                    // Clear existing options except the first one
+                    select.innerHTML = '<option value="">Select Country</option>';
+
+                    // Get countries and sort them alphabetically
+                    const countries = Object.keys(COUNTRY_FLAGS).sort();
+
+                    countries.forEach(country => {
+                        const opt = document.createElement('option');
+                        opt.value = country;
+                        opt.textContent = country;
+                        select.appendChild(opt);
+                    });
+                }
+
+                // Kick off
+                document.addEventListener('DOMContentLoaded', () => {
+                    populateCountryDropdown();
+                    loadProfile();
+                });
+            </script>
+
+            <footer>
+                <div class="container">
+                    <p><a href="#">CodeCraft</a> &copy; Copyright 2010-2026 Mike Mirzayanov / CodeCraft Team</p>
+                    <p style="color:#aaa;margin-top:5px;">The only programming contests Web 2.0 platform</p>
+                    <p style="color:#3b5998;margin-top:5px;">
+                        <a href="#">Privacy Policy</a> | <a href="#">Terms and Conditions</a>
+                    </p>
+                    <div class="footer-sponsor-logo">C</div>
+                </div>
+            </footer>
+
+    </body>
+
+    </html>

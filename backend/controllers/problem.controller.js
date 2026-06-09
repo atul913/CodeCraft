@@ -8,8 +8,8 @@ const getProblems = async (req, res) => {
     const filter = { isActive: true }
 
     if (difficulty) filter.difficulty = difficulty
-    if (category)   filter.categories = category
-    if (search)     filter.title = { $regex: search, $options: 'i' }
+    if (category) filter.categories = category
+    if (search) filter.title = { $regex: search, $options: 'i' }
 
     const problems = await Problem.find(filter)
       .select('title slug difficulty categories tags isActive createdAt')
@@ -25,8 +25,8 @@ const getProblems = async (req, res) => {
 const getProblemBySlug = async (req, res) => {
   try {
     const problem = await Problem.findOne({ slug: req.params.slug, isActive: true })
-      .select('-hiddenTestCases -solutionTemplates')
-      // never send hidden test cases or solution templates to frontend
+      .select('-hiddenTestCases')
+    // never send hidden test cases or solution templates to frontend
 
     if (!problem) {
       return res.status(404).json({ success: false, message: 'Problem not found' })

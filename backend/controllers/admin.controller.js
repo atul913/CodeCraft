@@ -5,11 +5,11 @@ const createProblem = async (req, res) => {
   try {
     const {
       title, difficulty, categories, tags,
-      description, constraints,
+      description, constraints, inputFormat, outputFormat,
       visibleTestCases, hiddenTestCases,
       supportedLanguages, starterCode, solutionTemplates,
       timeLimit, memoryLimit, editorial
-    } = req.body
+    } = req.body;
 
     // generate slug from title
     const slug = title.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
@@ -17,6 +17,7 @@ const createProblem = async (req, res) => {
     // check if slug already exists
     const existing = await Problem.findOne({ slug })
     if (existing) {
+      console.log("already");
       return res.status(400).json({ success: false, message: 'Problem with this title already exists' })
     }
 
@@ -27,6 +28,8 @@ const createProblem = async (req, res) => {
       description,
       constraints: constraints || [],
       visibleTestCases: visibleTestCases || [],
+      inputFormat:  inputFormat  || '',
+      outputFormat: outputFormat || '',
       hiddenTestCases: hiddenTestCases || [],
       supportedLanguages: supportedLanguages || [],
       starterCode: starterCode || {},

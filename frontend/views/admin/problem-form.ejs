@@ -5,7 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Add Problem — Admin — CodeCraft</title>
-    <link rel="stylesheet" href="/css/auth.css">
+    <link rel="stylesheet" href="/css/base.css">
     <link rel="stylesheet" href="/css/admin.css">
 </head>
 
@@ -21,7 +21,7 @@
         </div>
     </div>
 
-    <div class="container" style="max-width: 900px; padding: 30px 15px 80px;">
+    <div class="container" style="max-width: 1100px; padding: 30px 15px 80px;">
 
         <div class="welcome-banner" style="margin-bottom:25px;">
             <h2 style="font-size:20px; border:none; padding:0; margin:0 0 5px 0;">Add New Problem</h2>
@@ -90,6 +90,26 @@
                 </div>
             </div>
         </div>
+
+        <div class="card" style="margin-bottom:20px;">
+            <div class="card-header">Formats</div>
+            <div class="card-body">
+                <div class="form-group" style="grid-template-columns:1fr; gap:6px;">
+
+                    <label>Input Format</label>
+                    <textarea id="inputFormat" rows="3"
+                        placeholder="Describe how input is structured line by line&#10;e.g. First line contains n. Second line contains n space-separated integers. Third line contains target."></textarea>
+                </div>
+                <div class="form-group" style="grid-template-columns:1fr; gap:6px; margin-bottom:0;">
+                    <label>Output Format</label>
+                    <textarea id="outputFormat" rows="2"
+                        placeholder="Describe what to print&#10;e.g. Print two space-separated integers — the indices of the two numbers."></textarea>
+
+                </div>
+            </div>
+        </div>
+
+
 
         <!-- VISIBLE TEST CASES -->
         <div class="card" style="margin-bottom:20px;">
@@ -197,7 +217,7 @@
 
     <script>
         // ── API base URL ──
-        const API = 'http://127.0.0.1:5000/api'
+        const API = '/api'
 
         // ── Difficulty ──
         function selectDiff(el) {
@@ -300,26 +320,26 @@
             item.className = 'tc-item'
             item.id = id
             item.innerHTML = `
-      <div class="tc-item-header">
-        <span class="tc-label">${type === 'visible' ? 'Visible' : 'Hidden'} #${count}</span>
-        <button class="tc-remove" onclick="removeTC('${id}')">×</button>
-      </div>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:10px;">
-        <div class="form-group" style="grid-template-columns:1fr; gap:6px; margin-bottom:0;">
-          <label class="form-label" style="text-align:left;">Input</label>
-          <textarea class="input-field tc-input" style="max-width:100%; min-height:60px; padding:8px; font-family:monospace;" placeholder="e.g. nums = [2,7,11,15], target = 9"></textarea>
-        </div>
-        <div class="form-group" style="grid-template-columns:1fr; gap:6px; margin-bottom:0;">
-          <label class="form-label" style="text-align:left;">Expected Output</label>
-          <textarea class="input-field tc-output" style="max-width:100%; min-height:60px; padding:8px; font-family:monospace;" placeholder="e.g. [0,1]"></textarea>
-        </div>
-      </div>
-      ${type === 'visible' ? `
-      <div class="form-group" style="grid-template-columns:1fr; gap:6px; margin-bottom:0;">
-        <label class="form-label" style="text-align:left;">Explanation (optional)</label>
-        <input type="text" class="input-field tc-explanation" style="max-width:100%;" placeholder="e.g. Because nums[0] + nums[1] == 9" />
-      </div>` : ''}
-    `
+                <div class="tc-item-header">
+                    <span class="tc-label">${type === 'visible' ? 'Visible' : 'Hidden'} #${count}</span>
+                    <button class="tc-remove" onclick="removeTC('${id}')">×</button>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:10px;">
+                    <div class="form-group" style="grid-template-columns:1fr; gap:6px; margin-bottom:0;">
+                    <label class="form-label" style="text-align:left;">Input</label>
+                    <textarea class="input-field tc-input" style="max-width:100%; min-height:60px; padding:8px; font-family:monospace;" placeholder="e.g. nums = [2,7,11,15], target = 9"></textarea>
+                    </div>
+                    <div class="form-group" style="grid-template-columns:1fr; gap:6px; margin-bottom:0;">
+                    <label class="form-label" style="text-align:left;">Expected Output</label>
+                    <textarea class="input-field tc-output" style="max-width:100%; min-height:60px; padding:8px; font-family:monospace;" placeholder="e.g. [0,1]"></textarea>
+                    </div>
+                </div>
+                ${type === 'visible' ? `
+                <div class="form-group" style="grid-template-columns:1fr; gap:6px; margin-bottom:0;">
+                    <label class="form-label" style="text-align:left;">Explanation (optional)</label>
+                    <input type="text" class="input-field tc-explanation" style="max-width:100%;" placeholder="e.g. Because nums[0] + nums[1] == 9" />
+                </div>` : ''}
+                `
             list.appendChild(item)
         }
 
@@ -372,17 +392,21 @@
         async function submitForm() {
             const { errors, data } = validate()
             if (errors.length > 0) {
+                console.log('not gonna go')
                 showToast(errors[0], 'error')
                 return
             }
 
             const payload = {
+                slug: data.title,
                 title: data.title,
                 difficulty: data.difficulty,
                 categories: catCtrl.getTags(),
                 tags: tagCtrl.getTags(),
                 description: data.description,
                 constraints: document.getElementById('constraints').value.trim().split('\n').map(s => s.trim()).filter(Boolean),
+                inputFormat: document.getElementById('inputFormat').value.trim(),
+                outputFormat: document.getElementById('outputFormat').value.trim(),
                 visibleTestCases: data.visible,
                 hiddenTestCases: data.hidden,
                 supportedLanguages: data.langs,

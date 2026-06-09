@@ -24,6 +24,12 @@ const problemSchema = new Schema({
   starterCode:       { type: Map, of: String },
   solutionTemplates: { type: Map, of: String },
 
+  inputFormat:  { type: String, default: '' },
+// e.g. "First line contains n. Second line contains n integers..."
+
+  outputFormat: { type: String, default: '' },
+// e.g. "Print two space-separated integers — the indices of the two numbers."
+
   timeLimit:   { type: Number, default: 2000 },
   memoryLimit: { type: Number, default: 256 },
 

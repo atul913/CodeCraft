@@ -1,0 +1,162 @@
+/* ============================================================
+   navbar.css — Shared Navigation Styles
+   Import this file in every page that needs a top nav/bar.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap');
+
+/* ── Design Tokens ── */
+:root {
+    /* ── Theme Core Tokens from home.html ── */
+    --bg: #fcfcfc;
+    --bg-subtle: #f2f2f2;
+    --text: #1c1c1a;
+    --text-muted: #71716a;
+    --premium: #fea116;
+    --premium-light: rgba(254, 161, 22, 0.1);
+    --border: #e5e5e2;
+    --accent: #3f3f37;
+    --accent-light: #e7e7e4;
+    --font-main: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-serif: 'Instrument Serif', serif;
+    --font-mono: 'Geist Mono', monospace;
+    --radius: 8px;
+    --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* Brand Colors (Mapped to new theme) */
+    --color-primary: var(--premium);
+    --color-primary-dark: #e8920f;
+    --color-primary-light: var(--premium-light);
+    --color-primary-indigo: var(--text);
+    --color-primary-indigo-dark: var(--accent);
+
+    /* Social/Platform Brand Colors */
+    --color-brand-facebook: #1c1c1a;
+    --color-brand-facebook-hover: #3f3f37;
+    --color-brand-github: #1c1c1a;
+    --color-brand-github-hover: #3f3f37;
+    --color-brand-google: #ea4335;
+    --color-brand-google-hover: #d62d20;
+
+    /* Neutrals - Backgrounds & Surfaces (Mapped to new theme) */
+    --color-bg: var(--bg);
+    --color-bg-alt: var(--bg-subtle);
+    --color-bg-hover: rgba(0, 0, 0, 0.03);
+    --color-bg-active: rgba(0, 0, 0, 0.06);
+    --color-surface: #ffffff;
+    --color-surface-muted: var(--bg-subtle);
+    --color-surface-dark: #e7e7e4;
+
+    /* Neutrals - Borders (Mapped to new theme) */
+    --color-border-light: var(--border);
+    --color-border: var(--border);
+    --color-border-mid: var(--border);
+    --color-border-dark: var(--border);
+
+    /* Neutrals - Text (Mapped to new theme) */
+    --color-text: var(--text);
+    --color-text-dark: var(--text);
+    --color-text-slate: var(--text);
+    --color-text-muted: var(--text-muted);
+    --color-text-dim: var(--text-muted);
+    --color-text-secondary: var(--text-muted);
+    --color-text-gray: var(--text-muted);
+    --color-text-light: var(--text-muted);
+    --color-text-placeholder: var(--text-muted);
+    --color-link: var(--text);
+
+    /* Semantic Status Colors */
+    --color-success: #059669;
+    --color-success-dark: #047857;
+    --color-success-bg: #d1fae5;
+    --color-success-alt: #059669;
+    --color-success-alt-bg: #d1fae5;
+
+    --color-warning: #d97706;
+    --color-warning-dark: #b45309;
+    --color-warning-bg: #fef3c7;
+    --color-warning-alt: #d97706;
+    --color-warning-alt-bg: #fef3c7;
+
+    --color-danger: #dc2626;
+    --color-danger-hover: #b91c1c;
+    --color-danger-dark: #991b1b;
+    --color-danger-bg: #fee2e2;
+    --color-danger-alt: #dc2626;
+    --color-danger-alt-bg: #fee2e2;
+    --color-danger-text: #991b1b;
+
+    /* Spacing & Layout */
+    --nav-height: 64px;
+    --nav-padding-x: 40px;
+    --radius-xs: 4px;
+    --radius-sm: 6px;
+    --radius-md: var(--radius);
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+
+    /* Typography - Fonts */
+    --font-base: var(--font-main);
+    --font-navbar: var(--font-main);
+    --font-heading: var(--font-serif);
+    --font-monospace: var(--font-mono);
+
+    /* Typography - Sizes */
+    --font-size-xxs: 11px;
+    --font-size-xs: 12px;
+    --font-size-sm: 13px;
+    --font-size-md: 15px;
+    --font-size-lg: 18px;
+    --font-size-xl: 28px;
+
+    /* Typography - Weights */
+    --font-weight-light: 300;
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 500;
+    --font-weight-bold: 600;
+    --font-weight-extrabold: 600;
+    --font-weight-black: 600;
+
+    /* Heatmap / Activity colors */
+    --color-activity-0: #f2f2f2;
+    --color-activity-1: #fedbb2;
+    --color-activity-2: #fea116;
+    --color-activity-3: #d97706;
+    --color-activity-4: #b45309;
+}
+
+/* ── Base Reset (shared) ── */
+html {
+    scroll-behavior: smooth;
+    scrollbar-gutter: stable;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-base);
+    font-size: var(--font-size-sm);
+    background: var(--color-bg);
+    color: var(--color-text);
+    border: none;
+}
+
+a {
+    color: var(--color-link);
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+button {
+    cursor: pointer;
+}

@@ -1,0 +1,460 @@
+<%- include('partials/base') %>
+    <link rel="stylesheet" href="/css/ratings.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/7.2.3/css/flag-icons.min.css" />
+    </head>
+
+    <body>
+
+        <%- include('partials/navbar') %>
+
+            <div class="container" style="padding-top: 10px; padding-bottom: 40px;">
+
+                <!-- Page Header -->
+                <div class="rl-page-header">
+                    <div>
+                        <div class="rl-page-title">Rating Leaderboard</div>
+                        <div class="rl-page-subtitle">Rankings across all competitive programming metrics</div>
+                    </div>
+                    <div id="rl-last-updated" style="font-size:11px;color:#bbb;"></div>
+                </div>
+
+                <!-- Tab Switcher -->
+                <div class="rl-tabs">
+                    <button class="rl-tab active" data-tab="problem" onclick="switchTab('problem')">Rating</button>
+                    <button class="rl-tab" data-tab="contest" onclick="switchTab('contest')">Contest
+                        Rating</button>
+                    <button class="rl-tab" data-tab="global" onclick="switchTab('global')">Global Score</button>
+                </div>
+
+                <!-- Controls -->
+                <div class="rl-controls">
+                    <div class="rl-search-wrap">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <circle cx="11" cy="11" r="8" />
+                            <path d="m21 21-4.35-4.35" />
+                        </svg>
+                        <input type="text" class="rl-search" id="rl-search" placeholder="Search username…"
+                            oninput="onSearch()" />
+                    </div>
+                    <select class="rl-country-select" id="rl-country" onchange="onCountryFilter()">
+                        <option value="">All Countries</option>
+                    </select>
+                    <div class="rl-count" id="rl-count"></div>
+                </div>
+
+                <!-- Table -->
+                <div class="rl-table-wrap">
+                    <div class="rl-loading" id="rl-loading">Loading leaderboard…</div>
+                    <table class="rl-table" id="rl-table" style="display:none;">
+                        <thead id="rl-thead"></thead>
+                        <tbody id="rl-tbody"></tbody>
+                    </table>
+                    <div class="rl-empty" id="rl-empty" style="display:none;">No users match your filters.</div>
+                </div>
+
+                <!-- Pagination -->
+                <div class="rl-pagination" id="rl-pagination"></div>
+
+            </div>
+
+
+            <script>
+                // ── Country → flag emoji ──
+                const COUNTRY_FLAGS = {
+                    'Afghanistan': '<span class="fi fi-af"></span>',
+                    'Albania': '<span class="fi fi-al"></span>',
+                    'Algeria': '<span class="fi fi-dz"></span>',
+                    'Argentina': '<span class="fi fi-ar"></span>',
+                    'Armenia': '<span class="fi fi-am"></span>',
+                    'Australia': '<span class="fi fi-au"></span>',
+                    'Austria': '<span class="fi fi-at"></span>',
+                    'Azerbaijan': '<span class="fi fi-az"></span>',
+                    'Bangladesh': '<span class="fi fi-bd"></span>',
+                    'Belarus': '<span class="fi fi-by"></span>',
+                    'Belgium': '<span class="fi fi-be"></span>',
+                    'Bolivia': '<span class="fi fi-bo"></span>',
+                    'Bosnia': '<span class="fi fi-ba"></span>',
+                    'Brazil': '<span class="fi fi-br"></span>',
+                    'Bulgaria': '<span class="fi fi-bg"></span>',
+                    'Cambodia': '<span class="fi fi-kh"></span>',
+                    'Canada': '<span class="fi fi-ca"></span>',
+                    'Chile': '<span class="fi fi-cl"></span>',
+                    'China': '<span class="fi fi-cn"></span>',
+                    'Colombia': '<span class="fi fi-co"></span>',
+                    'Croatia': '<span class="fi fi-hr"></span>',
+                    'Cuba': '<span class="fi fi-cu"></span>',
+                    'Czech Republic': '<span class="fi fi-cz"></span>',
+                    'Denmark': '<span class="fi fi-dk"></span>',
+                    'Ecuador': '<span class="fi fi-ec"></span>',
+                    'Egypt': '<span class="fi fi-eg"></span>',
+                    'Estonia': '<span class="fi fi-ee"></span>',
+                    'Ethiopia': '<span class="fi fi-et"></span>',
+                    'Finland': '<span class="fi fi-fi"></span>',
+                    'France': '<span class="fi fi-fr"></span>',
+                    'Georgia': '<span class="fi fi-ge"></span>',
+                    'Germany': '<span class="fi fi-de"></span>',
+                    'Ghana': '<span class="fi fi-gh"></span>',
+                    'Greece': '<span class="fi fi-gr"></span>',
+                    'Guatemala': '<span class="fi fi-gt"></span>',
+                    'Hungary': '<span class="fi fi-hu"></span>',
+                    'India': '<span class="fi fi-in"></span>',
+                    'Indonesia': '<span class="fi fi-id"></span>',
+                    'Iran': '<span class="fi fi-ir"></span>',
+                    'Iraq': '<span class="fi fi-iq"></span>',
+                    'Ireland': '<span class="fi fi-ie"></span>',
+                    'Israel': '<span class="fi fi-il"></span>',
+                    'Italy': '<span class="fi fi-it"></span>',
+                    'Japan': '<span class="fi fi-jp"></span>',
+                    'Jordan': '<span class="fi fi-jo"></span>',
+                    'Kazakhstan': '<span class="fi fi-kz"></span>',
+                    'Kenya': '<span class="fi fi-ke"></span>',
+                    'Kosovo': '<span class="fi fi-xk"></span>',
+                    'Latvia': '<span class="fi fi-lv"></span>',
+                    'Lebanon': '<span class="fi fi-lb"></span>',
+                    'Lithuania': '<span class="fi fi-lt"></span>',
+                    'Malaysia': '<span class="fi fi-my"></span>',
+                    'Mexico': '<span class="fi fi-mx"></span>',
+                    'Moldova': '<span class="fi fi-md"></span>',
+                    'Mongolia': '<span class="fi fi-mn"></span>',
+                    'Morocco': '<span class="fi fi-ma"></span>',
+                    'Myanmar': '<span class="fi fi-mm"></span>',
+                    'Nepal': '<span class="fi fi-np"></span>',
+                    'Netherlands': '<span class="fi fi-nl"></span>',
+                    'New Zealand': '<span class="fi fi-nz"></span>',
+                    'Nigeria': '<span class="fi fi-ng"></span>',
+                    'North Korea': '<span class="fi fi-kp"></span>',
+                    'Norway': '<span class="fi fi-no"></span>',
+                    'Pakistan': '<span class="fi fi-pk"></span>',
+                    'Palestine': '<span class="fi fi-ps"></span>',
+                    'Peru': '<span class="fi fi-pe"></span>',
+                    'Philippines': '<span class="fi fi-ph"></span>',
+                    'Poland': '<span class="fi fi-pl"></span>',
+                    'Portugal': '<span class="fi fi-pt"></span>',
+                    'Romania': '<span class="fi fi-ro"></span>',
+                    'Russia': '<span class="fi fi-ru"></span>',
+                    'Saudi Arabia': '<span class="fi fi-sa"></span>',
+                    'Serbia': '<span class="fi fi-rs"></span>',
+                    'Singapore': '<span class="fi fi-sg"></span>',
+                    'Slovakia': '<span class="fi fi-sk"></span>',
+                    'Slovenia': '<span class="fi fi-si"></span>',
+                    'South Africa': '<span class="fi fi-za"></span>',
+                    'South Korea': '<span class="fi fi-kr"></span>',
+                    'Spain': '<span class="fi fi-es"></span>',
+                    'Sri Lanka': '<span class="fi fi-lk"></span>',
+                    'Sweden': '<span class="fi fi-se"></span>',
+                    'Switzerland': '<span class="fi fi-ch"></span>',
+                    'Syria': '<span class="fi fi-sy"></span>',
+                    'Taiwan': '<span class="fi fi-tw"></span>',
+                    'Tajikistan': '<span class="fi fi-tj"></span>',
+                    'Thailand': '<span class="fi fi-th"></span>',
+                    'Tunisia': '<span class="fi fi-tn"></span>',
+                    'Turkey': '<span class="fi fi-tr"></span>',
+                    'Turkmenistan': '<span class="fi fi-tm"></span>',
+                    'Ukraine': '<span class="fi fi-ua"></span>',
+                    'United Arab Emirates': '<span class="fi fi-ae"></span>',
+                    'United Kingdom': '<span class="fi fi-gb"></span>',
+                    'United States': '<span class="fi fi-us"></span>',
+                    'Uruguay': '<span class="fi fi-uy"></span>',
+                    'Uzbekistan': '<span class="fi fi-uz"></span>',
+                    'Venezuela': '<span class="fi fi-ve"></span>',
+                    'Vietnam': '<span class="fi fi-vn"></span>',
+                    'Yemen': '<span class="fi fi-ye"></span>',
+                    'Zimbabwe': '<span class="fi fi-zw"></span>'
+                }
+                const API = '/api'
+
+                function getToken() { return localStorage.getItem('token') }
+                function getLocalUser() { const d = localStorage.getItem('user'); return d ? JSON.parse(d) : null; }
+
+                const loggedInUser = getLocalUser()
+
+                // ── State ──
+                let allUsers = []          // full fetched list
+                let filtered = []          // after search + country filter
+                let activeTab = 'contest'
+                let sortCol = null        // column key
+                let sortDir = 'desc'
+                let currentPage = 1
+                const PAGE_SIZE = 50
+
+
+
+                function getFlag(country) {
+                    if (!country) return ''
+                    return COUNTRY_FLAGS[country] || '🏳'
+                }
+
+                function getFlagEmoji(country) {
+                    if (!country) return '';
+                    const html = COUNTRY_FLAGS[country];
+                    if (!html) return '🏳';
+                    const match = html.match(/fi-([a-z]{2})/);
+                    if (!match) return '🏳';
+                    const code = match[1].toUpperCase();
+                    const codePoints = code.split('').map(char => 127397 + char.charCodeAt(0));
+                    return String.fromCodePoint(...codePoints);
+                }
+
+                // ── Tab config ──
+                const TABS = {
+                    contest: {
+                        label: 'Contest Rating',
+                        sortKey: 'contestRating',
+                        headers: ['', 'Who', '#', '='],
+                        keys: [null, null, 'contestsPlayed', 'contestRating'],
+                        render: renderContestRow
+                    },
+                    problem: {
+                        label: 'Problem Rating',
+                        sortKey: 'problemRating',
+                        headers: ['', 'Who', '#', '='],
+                        keys: [null, null, 'problemsSolved', 'problemRating'],
+                        render: renderProblemRow
+                    },
+                    global: {
+                        label: 'Global Score',
+                        sortKey: 'globalScore',
+                        headers: ['', 'Who', '#', '='],
+                        keys: [null, null, 'reputation', 'globalScore'],
+                        render: renderGlobalRow
+                    }
+                }
+
+                // ── Fetch ──
+                async function loadLeaderboard() {
+                    try {
+                        const res = await fetch(`${API}/leaderboard`)
+                        const data = await res.json()
+                        if (!data.success) throw new Error(data.message)
+
+                        allUsers = data.data
+                        buildCountryFilter()
+                        applyFilters()
+                        document.getElementById('rl-last-updated').textContent =
+                            'Updated ' + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+                    } catch (e) {
+                        document.getElementById('rl-loading').textContent = 'Failed to load leaderboard. ' + (e.message || '')
+                    }
+                }
+
+
+
+                function buildCountryFilter() {
+                    const countries = [...new Set(allUsers.map(u => u.country).filter(Boolean))].sort()
+                    const sel = document.getElementById('rl-country')
+                    sel.innerHTML = '<option value="">All Countries</option>'
+                    countries.forEach(c => {
+                        const opt = document.createElement('option')
+                        opt.value = c
+                        opt.textContent = `${getFlagEmoji(c)} ${c}`
+                        sel.appendChild(opt)
+                    })
+                }
+
+                // ── Filters + Sort ──
+                function applyFilters() {
+                    const query = document.getElementById('rl-search').value.trim().toLowerCase()
+                    const country = document.getElementById('rl-country').value
+
+                    const tab = TABS[activeTab]
+                    const key = sortCol || tab.sortKey
+
+                    filtered = allUsers
+                        .filter(u => {
+                            if (query && !u.username.toLowerCase().includes(query) &&
+                                !(u.name || '').toLowerCase().includes(query)) return false
+                            if (country && u.country !== country) return false
+                            return true
+                        })
+                        .sort((a, b) => {
+                            const av = a[key] ?? -1
+                            const bv = b[key] ?? -1
+                            if (typeof av === 'string') return sortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av)
+                            return sortDir === 'asc' ? av - bv : bv - av
+                        })
+
+                    currentPage = 1
+                    document.getElementById('rl-count').textContent =
+                        filtered.length === allUsers.length
+                            ? `${allUsers.length} users`
+                            : `${filtered.length} of ${allUsers.length} users`
+
+                    renderTable()
+                }
+
+                function onSearch() { applyFilters() }
+                function onCountryFilter() { applyFilters() }
+
+                function switchTab(tab) {
+                    activeTab = tab
+                    sortCol = null
+                    sortDir = 'desc'
+                    document.querySelectorAll('.rl-tab').forEach(el => {
+                        el.classList.toggle('active', el.dataset.tab === tab)
+                    })
+                    applyFilters()
+                }
+
+                function sortBy(key) {
+                    if (sortCol === key) {
+                        sortDir = sortDir === 'desc' ? 'asc' : 'desc'
+                    } else {
+                        sortCol = key
+                        sortDir = 'desc'
+                    }
+                    applyFilters()
+                }
+
+                // ── Render ──
+                function renderTable() {
+                    const tab = TABS[activeTab]
+                    const thead = document.getElementById('rl-thead')
+                    const tbody = document.getElementById('rl-tbody')
+                    const table = document.getElementById('rl-table')
+                    const empty = document.getElementById('rl-empty')
+                    const loading = document.getElementById('rl-loading')
+
+                    loading.style.display = 'none'
+
+                    if (filtered.length === 0) {
+                        table.style.display = 'none'
+                        empty.style.display = 'block'
+                        document.getElementById('rl-pagination').innerHTML = ''
+                        return
+                    }
+
+                    table.style.display = 'table'
+                    empty.style.display = 'none'
+
+                    // Headers
+                    const activeKey = sortCol || tab.sortKey
+                    thead.innerHTML = '<tr>' + tab.headers.map((h, i) => {
+                        const key = tab.keys[i]
+                        const isNum = (h === '#' || h === '=')
+                        const alignClass = isNum ? 'col-num' : ''
+                        if (!key) return `<th class="no-sort ${alignClass}">${h}</th>`
+                        const cls = key === activeKey ? (sortDir === 'asc' ? 'sorted-asc' : 'sorted-desc') : ''
+                        return `<th class="${cls} ${alignClass}" onclick="sortBy('${key}')">${h}</th>`
+                    }).join('') + '</tr>'
+
+                    // Paginate
+                    const start = (currentPage - 1) * PAGE_SIZE
+                    const page = filtered.slice(start, start + PAGE_SIZE)
+
+                    tbody.innerHTML = page.map((u, i) => {
+                        const globalRank = start + i + 1
+                        return tab.render(u, globalRank)
+                    }).join('')
+
+                    renderPagination()
+                }
+
+                function renderPagination() {
+                    const total = Math.ceil(filtered.length / PAGE_SIZE)
+                    const pg = document.getElementById('rl-pagination')
+                    if (total <= 1) { pg.innerHTML = ''; return }
+
+                    let html = ''
+                    html += `<button class="pg-btn" onclick="goPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>‹</button>`
+
+                    const pages = paginationRange(currentPage, total)
+                    pages.forEach(p => {
+                        if (p === '…') {
+                            html += `<span class="pg-ellipsis">…</span>`
+                        } else {
+                            html += `<button class="pg-btn ${p === currentPage ? 'active' : ''}" onclick="goPage(${p})">${p}</button>`
+                        }
+                    })
+
+                    html += `<button class="pg-btn" onclick="goPage(${currentPage + 1})" ${currentPage === total ? 'disabled' : ''}>›</button>`
+                    pg.innerHTML = html
+                }
+
+                function paginationRange(cur, total) {
+                    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
+                    const pages = [1]
+                    if (cur > 3) pages.push('…')
+                    for (let p = Math.max(2, cur - 1); p <= Math.min(total - 1, cur + 1); p++) pages.push(p)
+                    if (cur < total - 2) pages.push('…')
+                    pages.push(total)
+                    return pages
+                }
+
+                function goPage(p) {
+                    const total = Math.ceil(filtered.length / PAGE_SIZE)
+                    if (p < 1 || p > total) return
+                    currentPage = p
+                    renderTable()
+                    window.scrollTo({ top: 0, behavior: 'smooth' })
+                }
+
+                // ── Row Renderers ──
+                function userCell(u) {
+                    const isMe = loggedInUser && loggedInUser.username === u.username
+                    const flag = getFlag(u.country)
+                    const youBadge = isMe ? '<span class="you-badge">YOU</span>' : ''
+                    const color = u.tier?.colorHex || '#1a1a1a'
+                    
+                    return `<td><div class="user-cell">
+                        <span class="user-flag">${flag || '🏳'}</span>
+                        <a href="/profile/${u.username}" class="user-link" style="color: ${color};">${u.username}</a>
+                        ${youBadge}
+                    </div></td>`
+                }
+
+                function rankCell(globalRank) {
+                    return `<td class="rank-cell">${globalRank}</td>`
+                }
+
+                function renderContestRow(u, rank) {
+                    const isMe = loggedInUser && loggedInUser.username === u.username
+                    const rVal = u.isRated
+                        ? `<span class="rating-val" style="color:${u.tier?.colorHex || '#1a1a1a'}">${u.contestRating}</span>`
+                        : `<span class="rating-unrated">Unrated</span>`
+
+                    return `<tr class="${isMe ? 'is-self' : ''}">
+                        ${rankCell(rank)}
+                        ${userCell(u)}
+                        <td class="col-num">${u.contestsPlayed || 0}</td>
+                        <td class="col-num">${rVal}</td>
+                    </tr>`
+                }
+
+                function renderProblemRow(u, rank) {
+                    const isMe = loggedInUser && loggedInUser.username === u.username
+                    return `<tr class="${isMe ? 'is-self' : ''}">
+                        ${rankCell(rank)}
+                        ${userCell(u)}
+                        <td class="col-num">${u.problemsSolved || 0}</td>
+                        <td class="col-num"><span class="rating-val">${u.problemRating || 0}</span></td>
+                    </tr>`
+                }
+
+                function renderGlobalRow(u, rank) {
+                    const isMe = loggedInUser && loggedInUser.username === u.username
+                    return `<tr class="${isMe ? 'is-self' : ''}">
+                        ${rankCell(rank)}
+                        ${userCell(u)}
+                        <td class="col-num">${u.reputation || 0}</td>
+                        <td class="col-num"><span class="rating-val" style="color:#3b5998">${u.globalScore || 0}</span></td>
+                    </tr>`
+                }
+
+                function renderSolvedRow(u, rank) {
+                    const isMe = loggedInUser && loggedInUser.username === u.username
+                    return `<tr class="${isMe ? 'is-self' : ''}">
+                        ${rankCell(rank)}
+                        ${userCell(u)}
+                        <td class="col-num">${u.problemsSolved || 0}</td>
+                        <td class="col-num"><span class="rating-val">${u.problemsSolved || 0}</span></td>
+                    </tr>`
+                }
+
+                // ── Boot ──
+                document.addEventListener('DOMContentLoaded', loadLeaderboard)
+            </script>
+
+    </body>
+
+    </html>
