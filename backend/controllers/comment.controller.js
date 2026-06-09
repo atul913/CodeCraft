@@ -1,4 +1,4 @@
-const Comment = require('../models/Comment')
+const Comment = require('../models/comment')
 
 // GET /api/comments/problem/:problemId
 const getComments = async (req, res) => {
@@ -9,21 +9,21 @@ const getComments = async (req, res) => {
     const comments = await Comment.find({
       parentType,
       parentId,
-      replyTo:   null,
+      replyTo: null,
       isDeleted: false
     })
-    .populate('authorId', 'username')
-    .sort({ createdAt: -1 })
-    .limit(50)
+      .populate('authorId', 'username')
+      .sort({ createdAt: -1 })
+      .limit(50)
 
     // get all replies for these comments in one query
     const commentIds = comments.map(c => c._id)
     const replies = await Comment.find({
-      replyTo:   { $in: commentIds },
+      replyTo: { $in: commentIds },
       isDeleted: false
     })
-    .populate('authorId', 'username')
-    .sort({ createdAt: 1 })
+      .populate('authorId', 'username')
+      .sort({ createdAt: 1 })
 
     // attach replies to their parent comment
     const commentMap = comments.map(c => ({
@@ -50,7 +50,7 @@ const postComment = async (req, res) => {
       authorId: req.user.id,
       parentType,
       parentId,
-      content:  content.trim()
+      content: content.trim()
     })
     await comment.save()
     await comment.populate('authorId', 'username')
@@ -77,7 +77,7 @@ const postReply = async (req, res) => {
       authorId: req.user.id,
       parentType,
       parentId,
-      content:  content.trim(),
+      content: content.trim(),
       replyTo
     })
     await reply.save()
@@ -96,7 +96,7 @@ const upvoteComment = async (req, res) => {
     if (!comment)
       return res.status(404).json({ success: false, message: 'Comment not found' })
 
-    const userId    = req.user.id
+    const userId = req.user.id
     const alreadyUp = comment.upvotes.map(u => u.toString()).includes(userId)
 
     if (alreadyUp) {
